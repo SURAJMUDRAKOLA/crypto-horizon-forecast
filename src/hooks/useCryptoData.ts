@@ -135,25 +135,26 @@ export const useCryptoData = (selectedCoin: string, timeframe: string = '7D') =>
     fetchData();
   }, [selectedCoin, timeframe]); // Added timeframe dependency
 
-  // Update prices every 10 seconds for real-time fluctuation feel
+  // Update prices every 30 seconds - more reasonable for API limits
   useEffect(() => {
     const interval = setInterval(async () => {
       try {
-        // Update live prices more frequently
+        // Only update live prices, avoid artificial fluctuations on real data
         const apiData = await fetchCryptoData();
         setCryptoData(convertApiToCryptoData(apiData));
         
-        // Update chart predictions with real-time fluctuations
+        // Only update predictions if we're showing predictions, not real price data
         setChartData(prevData => prevData.map(point => ({
           ...point,
-          predicted: point.predicted ? 
-            point.predicted * (1 + (Math.random() - 0.5) * 0.02) : // Small real-time fluctuations
-            undefined
+          predicted: point.predicted && timeframe === '1Y' ? 
+            point.predicted * (1 + (Math.random() - 0.5) * 0.01) : // Very small fluctuations only for future predictions
+            point.predicted
         })));
       } catch (error) {
         console.error('Error updating crypto data:', error);
+        // Don't update state on error to prevent fluctuations with mock data
       }
-    }, 10000); // Update every 10 seconds for more real-time feel
+    }, 30000); // Update every 30 seconds to respect API limits
 
     return () => clearInterval(interval);
   }, [selectedCoin, timeframe]);

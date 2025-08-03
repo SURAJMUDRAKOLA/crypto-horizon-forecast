@@ -86,29 +86,73 @@ export const fetchHistoricalData = async (coinSymbol: string, timeframe: string 
   }
 };
 
-// Fallback mock data
+// Fallback mock data - stable prices to avoid fluctuations when API fails
 const getMockCryptoData = (): CryptoApiData[] => [
   {
     id: 'bitcoin',
     symbol: 'btc',
     name: 'Bitcoin',
-    current_price: 42750 + Math.random() * 1000,
-    price_change_percentage_24h: -2.34 + Math.random() * 5,
-    total_volume: 28500000000,
-    market_cap: 837200000000,
-    price_change_24h: -1000 + Math.random() * 2000,
+    current_price: 113680, // Use realistic current price
+    price_change_percentage_24h: -0.12,
+    total_volume: 32500000000,
+    market_cap: 2263000000000,
+    price_change_24h: -136,
     image: 'https://assets.coingecko.com/coins/images/1/large/bitcoin.png'
   },
   {
     id: 'ethereum',
     symbol: 'eth',
     name: 'Ethereum',
-    current_price: 2580 + Math.random() * 200,
-    price_change_percentage_24h: 1.45 + Math.random() * 3,
-    total_volume: 15200000000,
-    market_cap: 310400000000,
-    price_change_24h: 37 + Math.random() * 50,
+    current_price: 3460, // Use realistic current price
+    price_change_percentage_24h: -1.31,
+    total_volume: 26100000000,
+    market_cap: 417800000000,
+    price_change_24h: -46,
     image: 'https://assets.coingecko.com/coins/images/279/large/ethereum.png'
+  },
+  {
+    id: 'solana',
+    symbol: 'sol',
+    name: 'Solana',
+    current_price: 161.39,
+    price_change_percentage_24h: -1.67,
+    total_volume: 4734000000,
+    market_cap: 86950000000,
+    price_change_24h: -2.74,
+    image: 'https://assets.coingecko.com/coins/images/4128/large/solana.png'
+  },
+  {
+    id: 'cardano',
+    symbol: 'ada',
+    name: 'Cardano',
+    current_price: 0.72,
+    price_change_percentage_24h: 0.59,
+    total_volume: 1217000000,
+    market_cap: 26165000000,
+    price_change_24h: 0.004,
+    image: 'https://assets.coingecko.com/coins/images/975/large/cardano.png'
+  },
+  {
+    id: 'chainlink',
+    symbol: 'link',
+    name: 'Chainlink',
+    current_price: 16.03,
+    price_change_percentage_24h: -0.17,
+    total_volume: 437000000,
+    market_cap: 10878000000,
+    price_change_24h: -0.028,
+    image: 'https://assets.coingecko.com/coins/images/877/large/chainlink-new-logo.png'
+  },
+  {
+    id: 'polkadot',
+    symbol: 'dot',
+    name: 'Polkadot',
+    current_price: 3.57,
+    price_change_percentage_24h: 0.40,
+    total_volume: 230000000,
+    market_cap: 5444000000,
+    price_change_24h: 0.014,
+    image: 'https://assets.coingecko.com/coins/images/12171/large/polkadot.png'
   }
 ];
 
