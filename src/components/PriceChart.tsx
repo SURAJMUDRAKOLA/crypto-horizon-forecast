@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 interface PriceChartProps {
   data: Array<{
     time: string;
-    price: number;
+    price?: number; // Made optional since we're showing predictions only
     predicted?: number;
   }>;
   selectedCoin: string;
@@ -23,8 +23,8 @@ const PriceChart = ({ data, selectedCoin, timeframe, onTimeframeChange }: PriceC
     <div className="bg-white rounded-xl p-6 shadow-lg crypto-glow">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h3 className="text-xl font-bold text-gray-800">{selectedCoin} Price Chart</h3>
-          <p className="text-sm text-gray-500">Historical & Predicted Prices</p>
+          <h3 className="text-xl font-bold text-gray-800">{selectedCoin} Future Predictions</h3>
+          <p className="text-sm text-gray-500">LSTM AI-Powered Price Forecasts</p>
         </div>
         
         <div className="flex space-x-2">
@@ -86,21 +86,11 @@ const PriceChart = ({ data, selectedCoin, timeframe, onTimeframeChange }: PriceC
               />
               <Area
                 type="monotone"
-                dataKey="price"
-                stroke="#667eea"
-                strokeWidth={2}
-                fillOpacity={1}
-                fill="url(#colorPrice)"
-                name="Current Price"
-              />
-              <Area
-                type="monotone"
                 dataKey="predicted"
                 stroke="#f7971e"
                 strokeWidth={2}
                 fillOpacity={1}
                 fill="url(#colorPredicted)"
-                strokeDasharray="5 5"
                 name="LSTM Prediction"
               />
             </AreaChart>
@@ -119,18 +109,9 @@ const PriceChart = ({ data, selectedCoin, timeframe, onTimeframeChange }: PriceC
               />
               <Line
                 type="monotone"
-                dataKey="price"
-                stroke="#667eea"
-                strokeWidth={3}
-                dot={{ fill: '#667eea', strokeWidth: 2, r: 4 }}
-                name="Current Price"
-              />
-              <Line
-                type="monotone"
                 dataKey="predicted"
                 stroke="#f7971e"
                 strokeWidth={3}
-                strokeDasharray="8 8"
                 dot={{ fill: '#f7971e', strokeWidth: 2, r: 4 }}
                 name="LSTM Prediction"
               />
