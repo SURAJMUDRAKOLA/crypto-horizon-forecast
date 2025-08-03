@@ -6,6 +6,7 @@ import PriceCard from "@/components/PriceCard";
 import PriceChart from "@/components/PriceChart";
 import TechnicalIndicators from "@/components/TechnicalIndicators";
 import PredictionPanel from "@/components/PredictionPanel";
+import LiveClock from "@/components/LiveClock";
 import { useCryptoData } from "@/hooks/useCryptoData";
 import { Loader2 } from "lucide-react";
 
@@ -30,20 +31,23 @@ const Index = () => {
     }
   };
 
-  // Mock prediction data
+  // Enhanced prediction data with 1-year prediction
+  const currentPrice = cryptoData.find(coin => coin.symbol === selectedCoin)?.price || 42750;
   const predictionData = {
-    currentPrice: cryptoData.find(coin => coin.symbol === selectedCoin)?.price || 42750,
+    currentPrice,
     predictions: {
-      '1h': 43200,
-      '24h': 44500,
-      '7d': 46800,
-      '30d': 48200
+      '1h': currentPrice * (1 + (Math.random() - 0.5) * 0.02),
+      '24h': currentPrice * (1 + (Math.random() - 0.5) * 0.05),
+      '7d': currentPrice * (1 + (Math.random() - 0.5) * 0.12),
+      '30d': currentPrice * (1 + (Math.random() - 0.5) * 0.25),
+      '1y': currentPrice * (1 + (Math.random() - 0.3) * 0.8) // 1-year prediction
     },
     confidence: {
       '1h': 92,
       '24h': 87,
       '7d': 74,
-      '30d': 68
+      '30d': 68,
+      '1y': 45 // Lower confidence for 1-year prediction
     },
     accuracy: {
       rmse: 145.7,
@@ -71,8 +75,8 @@ const Index = () => {
       <Header />
       
       <main className="max-w-7xl mx-auto p-6 space-y-6">
-        {/* Top Section: Coin Selector and Featured Prices */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        {/* Top Section: Coin Selector, Featured Prices, and Live Clock */}
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
           <div className="lg:col-span-1">
             <CoinSelector selectedCoin={selectedCoin} onCoinChange={setSelectedCoin} />
           </div>
@@ -80,6 +84,9 @@ const Index = () => {
             {cryptoData.slice(0, 3).map((coin) => (
               <PriceCard key={coin.symbol} {...coin} />
             ))}
+          </div>
+          <div className="lg:col-span-1">
+            <LiveClock />
           </div>
         </div>
 

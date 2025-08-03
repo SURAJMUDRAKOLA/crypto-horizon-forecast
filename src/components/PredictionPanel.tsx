@@ -10,12 +10,14 @@ interface PredictionPanelProps {
     '24h': number;
     '7d': number;
     '30d': number;
+    '1y': number;
   };
   confidence: {
     '1h': number;
     '24h': number;
     '7d': number;
     '30d': number;
+    '1y': number;
   };
   accuracy: {
     rmse: number;
@@ -46,7 +48,7 @@ const PredictionPanel = ({ currentPrice, predictions, confidence, accuracy }: Pr
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-3">
             {Object.entries(predictions).map(([timeframe, price]) => {
               const change = calculateChange(price, currentPrice);
               const isPositive = change >= 0;

@@ -59,7 +59,7 @@ export const useCryptoData = (selectedCoin: string, timeframe: string = '7D') =>
   const convertHistoricalToChartData = (historical: HistoricalData, timeframe: string): ChartData[] => {
     if (!historical.prices || historical.prices.length === 0) return [];
     
-    return historical.prices.map((priceData, index) => {
+    const chartPoints = historical.prices.map((priceData, index) => {
       const [timestamp, price] = priceData;
       const date = new Date(timestamp);
       
@@ -76,7 +76,7 @@ export const useCryptoData = (selectedCoin: string, timeframe: string = '7D') =>
       // Add LSTM predictions for recent data points (last 20% of data)
       const predictionThreshold = Math.floor(historical.prices.length * 0.8);
       const predicted = index >= predictionThreshold 
-        ? price * (1 + (Math.random() - 0.5) * 0.03) // Slightly larger variation for predictions
+        ? price * (1 + (Math.random() - 0.5) * 0.04) // Real-time fluctuation with larger variance
         : undefined;
       
       return {
@@ -85,6 +85,32 @@ export const useCryptoData = (selectedCoin: string, timeframe: string = '7D') =>
         predicted: predicted ? Math.round(predicted * 100) / 100 : undefined
       };
     });
+
+    // Add future predictions (1 year ahead)
+    if (timeframe === '1Y') {
+      const lastPrice = historical.prices[historical.prices.length - 1][1];
+      const currentTime = Date.now();
+      const oneDay = 24 * 60 * 60 * 1000;
+      
+      // Generate future predictions for next 365 days
+      for (let i = 1; i <= 365; i++) {
+        const futureDate = new Date(currentTime + (i * oneDay));
+        const timeLabel = futureDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        
+        // Simulate realistic price prediction with trend and volatility
+        const trendFactor = 1 + (Math.sin(i * 0.02) * 0.1); // Long-term trend
+        const volatility = (Math.random() - 0.5) * 0.08; // Daily volatility
+        const predictedPrice = lastPrice * trendFactor * (1 + volatility);
+        
+        chartPoints.push({
+          time: timeLabel,
+          price: undefined, // No historical price for future
+          predicted: Math.round(predictedPrice * 100) / 100
+        });
+      }
+    }
+
+    return chartPoints;
   };
 
   // Fetch initial data
@@ -109,24 +135,28 @@ export const useCryptoData = (selectedCoin: string, timeframe: string = '7D') =>
     fetchData();
   }, [selectedCoin, timeframe]); // Added timeframe dependency
 
-  // Update prices every 30 seconds for real-time feel and refresh predictions
+  // Update prices every 10 seconds for real-time fluctuation feel
   useEffect(() => {
     const interval = setInterval(async () => {
       try {
-        const [apiData, historicalData] = await Promise.all([
-          fetchCryptoData(),
-          fetchHistoricalData(selectedCoin, timeframe)
-        ]);
+        // Update live prices more frequently
+        const apiData = await fetchCryptoData();
         setCryptoData(convertApiToCryptoData(apiData));
-        // Update chart data with new predictions
-        setChartData(convertHistoricalToChartData(historicalData, timeframe));
+        
+        // Update chart predictions with real-time fluctuations
+        setChartData(prevData => prevData.map(point => ({
+          ...point,
+          predicted: point.predicted ? 
+            point.predicted * (1 + (Math.random() - 0.5) * 0.02) : // Small real-time fluctuations
+            undefined
+        })));
       } catch (error) {
         console.error('Error updating crypto data:', error);
       }
-    }, 30000);
+    }, 10000); // Update every 10 seconds for more real-time feel
 
     return () => clearInterval(interval);
-  }, [selectedCoin, timeframe]); // Added timeframe dependency
+  }, [selectedCoin, timeframe]);
 
   return { cryptoData, chartData, loading };
 };

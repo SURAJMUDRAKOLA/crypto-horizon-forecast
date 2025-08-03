@@ -51,7 +51,7 @@ export const fetchHistoricalData = async (coinSymbol: string, timeframe: string 
     const coinId = coinIdMap[coinSymbol];
     if (!coinId) throw new Error('Coin not supported');
     
-    // Convert timeframe to days
+    // Convert timeframe to days - use CoinGecko's automatic interval detection
     const daysMap: Record<string, number> = {
       '1D': 1,
       '7D': 7,
@@ -61,11 +61,18 @@ export const fetchHistoricalData = async (coinSymbol: string, timeframe: string 
     };
     
     const days = daysMap[timeframe] || 7;
-    const interval = days === 1 ? 'hourly' : days <= 7 ? 'hourly' : days <= 30 ? 'daily' : 'daily';
     
-    const response = await fetch(
-      `${COINGECKO_API_BASE}/coins/${coinId}/market_chart?vs_currency=usd&days=${days}&interval=${interval}`
-    );
+    // Don't specify interval for most cases to avoid Enterprise plan restriction
+    // CoinGecko automatically chooses appropriate interval based on days parameter
+    let url = `${COINGECKO_API_BASE}/coins/${coinId}/market_chart?vs_currency=usd&days=${days}`;
+    
+    // Only add interval for specific cases where it's supported in free tier
+    if (days >= 2 && days <= 90) {
+      // CoinGecko provides hourly data automatically for 2-90 days range
+      // No need to specify interval parameter
+    }
+    
+    const response = await fetch(url);
     
     if (!response.ok) {
       throw new Error('Failed to fetch historical data');
