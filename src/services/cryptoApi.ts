@@ -46,13 +46,25 @@ export const fetchCryptoData = async (coins: string[] = ['BTC', 'ETH', 'ADA', 'D
   }
 };
 
-export const fetchHistoricalData = async (coinSymbol: string, days: number = 30): Promise<HistoricalData> => {
+export const fetchHistoricalData = async (coinSymbol: string, timeframe: string = '7D'): Promise<HistoricalData> => {
   try {
     const coinId = coinIdMap[coinSymbol];
     if (!coinId) throw new Error('Coin not supported');
     
+    // Convert timeframe to days
+    const daysMap: Record<string, number> = {
+      '1D': 1,
+      '7D': 7,
+      '1M': 30,
+      '3M': 90,
+      '1Y': 365
+    };
+    
+    const days = daysMap[timeframe] || 7;
+    const interval = days === 1 ? 'hourly' : days <= 7 ? 'hourly' : days <= 30 ? 'daily' : 'daily';
+    
     const response = await fetch(
-      `${COINGECKO_API_BASE}/coins/${coinId}/market_chart?vs_currency=usd&days=${days}&interval=daily`
+      `${COINGECKO_API_BASE}/coins/${coinId}/market_chart?vs_currency=usd&days=${days}&interval=${interval}`
     );
     
     if (!response.ok) {
@@ -63,7 +75,7 @@ export const fetchHistoricalData = async (coinSymbol: string, days: number = 30)
   } catch (error) {
     console.error('Error fetching historical data:', error);
     // Return mock data as fallback
-    return getMockHistoricalData(coinSymbol, days);
+    return getMockHistoricalData(coinSymbol, timeframe);
   }
 };
 
@@ -93,12 +105,26 @@ const getMockCryptoData = (): CryptoApiData[] => [
   }
 ];
 
-const getMockHistoricalData = (coinSymbol: string, days: number): HistoricalData => {
+const getMockHistoricalData = (coinSymbol: string, timeframe: string): HistoricalData => {
   const prices: [number, number][] = [];
-  const basePrice = coinSymbol === 'BTC' ? 42000 : 2500;
+  const basePrice = coinSymbol === 'BTC' ? 42000 : coinSymbol === 'ETH' ? 2500 : 1;
   
-  for (let i = 0; i < days; i++) {
-    const timestamp = Date.now() - (days - i) * 24 * 60 * 60 * 1000;
+  // Generate different amounts of data based on timeframe
+  const daysMap: Record<string, number> = {
+    '1D': 1,
+    '7D': 7,
+    '1M': 30,
+    '3M': 90,
+    '1Y': 365
+  };
+  
+  const days = daysMap[timeframe] || 7;
+  const pointsPerDay = timeframe === '1D' ? 24 : 1; // Hourly for 1D, daily for others
+  const totalPoints = days * pointsPerDay;
+  
+  for (let i = 0; i < totalPoints; i++) {
+    const hoursBack = timeframe === '1D' ? (totalPoints - i) : (totalPoints - i) * 24;
+    const timestamp = Date.now() - hoursBack * 60 * 60 * 1000;
     const variation = Math.sin(i * 0.1) * 0.1 + (Math.random() - 0.5) * 0.05;
     const price = basePrice * (1 + variation);
     prices.push([timestamp, price]);

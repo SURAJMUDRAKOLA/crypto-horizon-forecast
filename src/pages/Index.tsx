@@ -11,7 +11,8 @@ import { Loader2 } from "lucide-react";
 
 const Index = () => {
   const [selectedCoin, setSelectedCoin] = useState("BTC");
-  const { cryptoData, chartData, loading } = useCryptoData(selectedCoin);
+  const [timeframe, setTimeframe] = useState("7D");
+  const { cryptoData, chartData, loading } = useCryptoData(selectedCoin, timeframe);
 
   // Mock technical indicators data
   const technicalData = {
@@ -85,7 +86,12 @@ const Index = () => {
         {/* Main Chart Section */}
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
           <div className="xl:col-span-2">
-            <PriceChart data={chartData} selectedCoin={selectedCoin} />
+            <PriceChart 
+              data={chartData} 
+              selectedCoin={selectedCoin} 
+              timeframe={timeframe}
+              onTimeframeChange={setTimeframe}
+            />
           </div>
           <div className="xl:col-span-1">
             <TechnicalIndicators {...technicalData} />

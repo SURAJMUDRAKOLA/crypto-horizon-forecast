@@ -10,11 +10,12 @@ interface PriceChartProps {
     predicted?: number;
   }>;
   selectedCoin: string;
+  timeframe: string;
+  onTimeframeChange: (timeframe: string) => void;
 }
 
-const PriceChart = ({ data, selectedCoin }: PriceChartProps) => {
+const PriceChart = ({ data, selectedCoin, timeframe, onTimeframeChange }: PriceChartProps) => {
   const [chartType, setChartType] = useState<'line' | 'area'>('area');
-  const [timeframe, setTimeframe] = useState('7D');
 
   const timeframes = ['1D', '7D', '1M', '3M', '1Y'];
 
@@ -32,7 +33,7 @@ const PriceChart = ({ data, selectedCoin }: PriceChartProps) => {
               key={tf}
               variant={timeframe === tf ? "default" : "outline"}
               size="sm"
-              onClick={() => setTimeframe(tf)}
+              onClick={() => onTimeframeChange(tf)}
               className="text-xs"
             >
               {tf}
