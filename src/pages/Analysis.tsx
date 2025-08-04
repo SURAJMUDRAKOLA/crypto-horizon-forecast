@@ -19,6 +19,76 @@ const Analysis = () => {
   const coinSymbol = selectedModel.toUpperCase().replace('CARDANO', 'ADA').replace('POLKADOT', 'DOT').replace('CHAINLINK', 'LINK').replace('SOLANA', 'SOL').replace('ETHEREUM', 'ETH').replace('BITCOIN', 'BTC');
   const { cryptoData, chartData } = useCryptoData(coinSymbol, predictionTimeframe);
   
+  // Model metrics - moved here to avoid temporal dead zone error
+  const modelMetrics = {
+    bitcoin: {
+      name: "Bitcoin LSTM",
+      accuracy: 95.3,
+      rmse: 145.7,
+      mae: 98.3,
+      mape: 2.4,
+      sharpe: 1.8,
+      maxDrawdown: -5.2,
+      totalPredictions: 15420,
+      correctPredictions: 14698
+    },
+    ethereum: {
+      name: "Ethereum LSTM", 
+      accuracy: 91.8,
+      rmse: 12.3,
+      mae: 8.9,
+      mape: 3.1,
+      sharpe: 1.6,
+      maxDrawdown: -7.1,
+      totalPredictions: 12350,
+      correctPredictions: 11339
+    },
+    cardano: {
+      name: "Cardano LSTM",
+      accuracy: 89.2,
+      rmse: 0.025,
+      mae: 0.018,
+      mape: 2.8,
+      sharpe: 1.4,
+      maxDrawdown: -8.3,
+      totalPredictions: 11280,
+      correctPredictions: 10064
+    },
+    polkadot: {
+      name: "Polkadot LSTM",
+      accuracy: 87.5,
+      rmse: 0.15,
+      mae: 0.11,
+      mape: 3.5,
+      sharpe: 1.3,
+      maxDrawdown: -9.1,
+      totalPredictions: 9850,
+      correctPredictions: 8619
+    },
+    chainlink: {
+      name: "Chainlink LSTM",
+      accuracy: 88.9,
+      rmse: 0.42,
+      mae: 0.31,
+      mape: 3.2,
+      sharpe: 1.5,
+      maxDrawdown: -7.8,
+      totalPredictions: 10750,
+      correctPredictions: 9557
+    },
+    solana: {
+      name: "Solana LSTM",
+      accuracy: 92.4,
+      rmse: 3.8,
+      mae: 2.9,
+      mape: 2.7,
+      sharpe: 1.7,
+      maxDrawdown: -6.4,
+      totalPredictions: 13200,
+      correctPredictions: 12197
+    }
+  };
+  
   // Get current price for the selected model
   const getCurrentPrice = () => {
     const coin = cryptoData.find(c => c.symbol === coinSymbol);
@@ -177,74 +247,6 @@ const Analysis = () => {
 
   const predictionData = getPredictionData();
 
-  const modelMetrics = {
-    bitcoin: {
-      name: "Bitcoin LSTM",
-      accuracy: 95.3,
-      rmse: 145.7,
-      mae: 98.3,
-      mape: 2.4,
-      sharpe: 1.8,
-      maxDrawdown: -5.2,
-      totalPredictions: 15420,
-      correctPredictions: 14698
-    },
-    ethereum: {
-      name: "Ethereum LSTM", 
-      accuracy: 91.8,
-      rmse: 12.3,
-      mae: 8.9,
-      mape: 3.1,
-      sharpe: 1.6,
-      maxDrawdown: -7.1,
-      totalPredictions: 12350,
-      correctPredictions: 11339
-    },
-    cardano: {
-      name: "Cardano LSTM",
-      accuracy: 89.2,
-      rmse: 0.025,
-      mae: 0.018,
-      mape: 2.8,
-      sharpe: 1.4,
-      maxDrawdown: -8.3,
-      totalPredictions: 11280,
-      correctPredictions: 10064
-    },
-    polkadot: {
-      name: "Polkadot LSTM",
-      accuracy: 87.5,
-      rmse: 0.15,
-      mae: 0.11,
-      mape: 3.5,
-      sharpe: 1.3,
-      maxDrawdown: -9.1,
-      totalPredictions: 9850,
-      correctPredictions: 8619
-    },
-    chainlink: {
-      name: "Chainlink LSTM",
-      accuracy: 88.9,
-      rmse: 0.42,
-      mae: 0.31,
-      mape: 3.2,
-      sharpe: 1.5,
-      maxDrawdown: -7.8,
-      totalPredictions: 10750,
-      correctPredictions: 9557
-    },
-    solana: {
-      name: "Solana LSTM",
-      accuracy: 92.4,
-      rmse: 3.8,
-      mae: 2.9,
-      mape: 2.7,
-      sharpe: 1.7,
-      maxDrawdown: -6.4,
-      totalPredictions: 13200,
-      correctPredictions: 12197
-    }
-  };
 
   const currentMetrics = modelMetrics[selectedModel as keyof typeof modelMetrics];
 
