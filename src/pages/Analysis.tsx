@@ -5,11 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
-import { TrendingUp, TrendingDown, Target, Brain, Activity, AlertTriangle } from "lucide-react";
+import { TrendingUp, TrendingDown, Target, Brain, Activity, AlertTriangle, Download } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 const Analysis = () => {
   const [selectedModel, setSelectedModel] = useState("bitcoin");
   const [timeframe, setTimeframe] = useState("7d");
+  const { toast } = useToast();
 
   // Mock prediction accuracy data over time
   const accuracyData = [
@@ -23,15 +25,62 @@ const Analysis = () => {
     { date: 'Aug', accuracy: 95.3, loss: 0.022 }
   ];
 
-  // Mock recent predictions vs actual
-  const predictionData = [
-    { time: '00:00', actual: 42750, predicted: 42680, confidence: 92 },
-    { time: '04:00', actual: 42890, predicted: 42920, confidence: 89 },
-    { time: '08:00', actual: 43200, predicted: 43150, confidence: 94 },
-    { time: '12:00', actual: 43050, predicted: 43100, confidence: 91 },
-    { time: '16:00', actual: 42980, predicted: 42950, confidence: 88 },
-    { time: '20:00', actual: 43150, predicted: 43180, confidence: 93 },
-  ];
+  // Dynamic prediction data based on selected model
+  const getPredictionData = (model: string) => {
+    const baseData = {
+      bitcoin: [
+        { time: '00:00', actual: 115200, predicted: 115150, confidence: 92 },
+        { time: '04:00', actual: 115400, predicted: 115380, confidence: 89 },
+        { time: '08:00', actual: 115100, predicted: 115120, confidence: 94 },
+        { time: '12:00', actual: 115300, predicted: 115290, confidence: 91 },
+        { time: '16:00', actual: 115180, predicted: 115200, confidence: 88 },
+        { time: '20:00', actual: 115250, predicted: 115240, confidence: 93 },
+      ],
+      ethereum: [
+        { time: '00:00', actual: 3680, predicted: 3675, confidence: 91 },
+        { time: '04:00', actual: 3690, predicted: 3695, confidence: 88 },
+        { time: '08:00', actual: 3670, predicted: 3672, confidence: 93 },
+        { time: '12:00', actual: 3685, predicted: 3680, confidence: 90 },
+        { time: '16:00', actual: 3682, predicted: 3685, confidence: 87 },
+        { time: '20:00', actual: 3688, predicted: 3690, confidence: 92 },
+      ],
+      cardano: [
+        { time: '00:00', actual: 0.751, predicted: 0.750, confidence: 89 },
+        { time: '04:00', actual: 0.753, predicted: 0.754, confidence: 86 },
+        { time: '08:00', actual: 0.749, predicted: 0.750, confidence: 91 },
+        { time: '12:00', actual: 0.752, predicted: 0.751, confidence: 88 },
+        { time: '16:00', actual: 0.750, predicted: 0.752, confidence: 85 },
+        { time: '20:00', actual: 0.751, predicted: 0.751, confidence: 90 },
+      ],
+      polkadot: [
+        { time: '00:00', actual: 3.72, predicted: 3.71, confidence: 87 },
+        { time: '04:00', actual: 3.74, predicted: 3.75, confidence: 84 },
+        { time: '08:00', actual: 3.70, predicted: 3.71, confidence: 89 },
+        { time: '12:00', actual: 3.73, predicted: 3.72, confidence: 86 },
+        { time: '16:00', actual: 3.71, predicted: 3.73, confidence: 83 },
+        { time: '20:00', actual: 3.72, predicted: 3.72, confidence: 88 },
+      ],
+      chainlink: [
+        { time: '00:00', actual: 16.97, predicted: 16.95, confidence: 90 },
+        { time: '04:00', actual: 17.01, predicted: 17.02, confidence: 87 },
+        { time: '08:00', actual: 16.94, predicted: 16.96, confidence: 92 },
+        { time: '12:00', actual: 16.99, predicted: 16.98, confidence: 89 },
+        { time: '16:00', actual: 16.96, predicted: 16.98, confidence: 86 },
+        { time: '20:00', actual: 16.98, predicted: 16.97, confidence: 91 },
+      ],
+      solana: [
+        { time: '00:00', actual: 167.5, predicted: 167.2, confidence: 93 },
+        { time: '04:00', actual: 167.8, predicted: 167.9, confidence: 90 },
+        { time: '08:00', actual: 167.3, predicted: 167.4, confidence: 95 },
+        { time: '12:00', actual: 167.6, predicted: 167.5, confidence: 92 },
+        { time: '16:00', actual: 167.4, predicted: 167.6, confidence: 89 },
+        { time: '20:00', actual: 167.5, predicted: 167.5, confidence: 94 },
+      ]
+    };
+    return baseData[model as keyof typeof baseData] || baseData.bitcoin;
+  };
+
+  const predictionData = getPredictionData(selectedModel);
 
   const modelMetrics = {
     bitcoin: {
@@ -55,10 +104,110 @@ const Analysis = () => {
       maxDrawdown: -7.1,
       totalPredictions: 12350,
       correctPredictions: 11339
+    },
+    cardano: {
+      name: "Cardano LSTM",
+      accuracy: 89.2,
+      rmse: 0.025,
+      mae: 0.018,
+      mape: 2.8,
+      sharpe: 1.4,
+      maxDrawdown: -8.3,
+      totalPredictions: 11280,
+      correctPredictions: 10064
+    },
+    polkadot: {
+      name: "Polkadot LSTM",
+      accuracy: 87.5,
+      rmse: 0.15,
+      mae: 0.11,
+      mape: 3.5,
+      sharpe: 1.3,
+      maxDrawdown: -9.1,
+      totalPredictions: 9850,
+      correctPredictions: 8619
+    },
+    chainlink: {
+      name: "Chainlink LSTM",
+      accuracy: 88.9,
+      rmse: 0.42,
+      mae: 0.31,
+      mape: 3.2,
+      sharpe: 1.5,
+      maxDrawdown: -7.8,
+      totalPredictions: 10750,
+      correctPredictions: 9557
+    },
+    solana: {
+      name: "Solana LSTM",
+      accuracy: 92.4,
+      rmse: 3.8,
+      mae: 2.9,
+      mape: 2.7,
+      sharpe: 1.7,
+      maxDrawdown: -6.4,
+      totalPredictions: 13200,
+      correctPredictions: 12197
     }
   };
 
   const currentMetrics = modelMetrics[selectedModel as keyof typeof modelMetrics];
+
+  const generateDetailedReport = () => {
+    const report = `
+# AI Model Analysis Report - ${currentMetrics.name}
+Generated on: ${new Date().toLocaleDateString()}
+
+## Model Performance Summary
+- Accuracy: ${currentMetrics.accuracy}%
+- RMSE: ${currentMetrics.rmse}
+- MAE: ${currentMetrics.mae}
+- MAPE: ${currentMetrics.mape}%
+- Sharpe Ratio: ${currentMetrics.sharpe}
+- Max Drawdown: ${currentMetrics.maxDrawdown}%
+
+## Prediction Statistics
+- Total Predictions: ${currentMetrics.totalPredictions.toLocaleString()}
+- Correct Predictions: ${currentMetrics.correctPredictions.toLocaleString()}
+- Success Rate: ${((currentMetrics.correctPredictions / currentMetrics.totalPredictions) * 100).toFixed(2)}%
+
+## Model Configuration
+- LSTM Layers: 3 layers
+- Hidden Units: 128 units
+- Sequence Length: 60 timesteps
+- Dropout Rate: 0.2
+
+## Recent Performance Insights
+- High accuracy period achieved during stable market conditions
+- LSTM layers showing improved pattern recognition
+- Increased prediction uncertainty during high volatility periods
+
+## Recommendations
+- Continue monitoring model performance during volatile periods
+- Consider retraining if accuracy drops below 85%
+- Implement additional technical indicators for enhanced predictions
+    `;
+
+    return report.trim();
+  };
+
+  const downloadReport = () => {
+    const report = generateDetailedReport();
+    const blob = new Blob([report], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${currentMetrics.name.replace(' ', '_')}_Analysis_Report_${new Date().toISOString().split('T')[0]}.md`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    toast({
+      title: "Report Downloaded",
+      description: "Detailed analysis report has been downloaded successfully.",
+    });
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -83,6 +232,10 @@ const Analysis = () => {
             <SelectContent>
               <SelectItem value="bitcoin">Bitcoin LSTM</SelectItem>
               <SelectItem value="ethereum">Ethereum LSTM</SelectItem>
+              <SelectItem value="cardano">Cardano LSTM</SelectItem>
+              <SelectItem value="polkadot">Polkadot LSTM</SelectItem>
+              <SelectItem value="chainlink">Chainlink LSTM</SelectItem>
+              <SelectItem value="solana">Solana LSTM</SelectItem>
             </SelectContent>
           </Select>
           
@@ -318,9 +471,26 @@ const Analysis = () => {
                   </p>
                 </div>
 
-                <div className="pt-4">
-                  <Button className="w-full" variant="outline">
+                <div className="pt-4 space-y-2">
+                  <Button 
+                    className="w-full" 
+                    variant="outline"
+                    onClick={() => {
+                      toast({
+                        title: "Report Generated",
+                        description: "Detailed analysis report has been generated successfully.",
+                      });
+                    }}
+                  >
                     Generate Detailed Report
+                  </Button>
+                  <Button 
+                    className="w-full" 
+                    variant="default"
+                    onClick={downloadReport}
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    Download Report
                   </Button>
                 </div>
               </div>
