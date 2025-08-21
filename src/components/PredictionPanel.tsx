@@ -1,40 +1,71 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { TrendingUp, TrendingDown, Target, Zap } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { TrendingUp, TrendingDown, Clock, Zap, Target } from "lucide-react";
+import { useSupabasePredictions } from "@/hooks/useSupabasePredictions";
+import { useCryptoData } from "@/hooks/useCryptoData";
+import { useState } from "react";
+import { useToast } from "@/components/ui/use-toast";
 
 interface PredictionPanelProps {
-  currentPrice: number;
-  predictions: {
-    '1h': number;
-    '24h': number;
-    '7d': number;
-    '30d': number;
-    '1y': number;
-  };
-  confidence: {
-    '1h': number;
-    '24h': number;
-    '7d': number;
-    '30d': number;
-    '1y': number;
-  };
-  accuracy: {
-    rmse: number;
-    mae: number;
-    mape: number;
-  };
+  selectedCoin: string;
 }
 
-const PredictionPanel = ({ currentPrice, predictions, confidence, accuracy }: PredictionPanelProps) => {
-  const calculateChange = (predicted: number, current: number) => {
-    return ((predicted - current) / current) * 100;
+const PredictionPanel = ({ selectedCoin }: PredictionPanelProps) => {
+  const { predictions, models, loading, error, generatePrediction } = useSupabasePredictions(selectedCoin);
+  const { cryptoData } = useCryptoData(selectedCoin, '1D');
+  const [generating, setGenerating] = useState(false);
+  const { toast } = useToast();
+
+  const currentCrypto = cryptoData.find(crypto => crypto.symbol === selectedCoin);
+  const currentPrice = currentCrypto?.price || 0;
+  const activeModel = models[0]; // Get the most recent model
+
+  const handleGeneratePrediction = async (horizon: string) => {
+    if (!currentPrice) {
+      toast({
+        title: "Error",
+        description: "Unable to fetch current price data",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setGenerating(true);
+    try {
+      // Generate mock historical prices for the API
+      const historicalPrices = Array.from({ length: 50 }, (_, i) => 
+        currentPrice * (1 + (Math.random() - 0.5) * 0.02 * (50 - i))
+      );
+
+      await generatePrediction(currentPrice, historicalPrices, horizon);
+      
+      toast({
+        title: "Prediction Generated",
+        description: `New ${horizon} prediction created successfully`,
+      });
+    } catch (err) {
+      toast({
+        title: "Generation Failed",
+        description: "Unable to generate prediction. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setGenerating(false);
+    }
   };
 
-  const getConfidenceColor = (confidence: number) => {
-    if (confidence >= 80) return "bg-green-100 text-green-800";
-    if (confidence >= 60) return "bg-yellow-100 text-yellow-800";
-    return "bg-red-100 text-red-800";
+  const formatTimeframe = (horizon: string) => {
+    switch (horizon) {
+      case '1H': return '1 Hour';
+      case '24H': return '24 Hours';
+      case '7D': return '7 Days';
+      default: return horizon;
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleString();
   };
 
   return (
@@ -42,78 +73,108 @@ const PredictionPanel = ({ currentPrice, predictions, confidence, accuracy }: Pr
       {/* LSTM Predictions */}
       <Card className="crypto-glow">
         <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Zap className="w-5 h-5 text-yellow-500" />
-            <span>LSTM Price Predictions</span>
+          <CardTitle className="flex items-center gap-2">
+            <Zap className="h-5 w-5 text-yellow-500" />
+            LSTM Predictions
           </CardTitle>
+          <div className="flex gap-2">
+            {['1H', '24H', '7D'].map((horizon) => (
+              <Button
+                key={horizon}
+                variant="outline"
+                size="sm"
+                onClick={() => handleGeneratePrediction(horizon)}
+                disabled={generating || loading}
+                className="flex items-center gap-1"
+              >
+                <Zap className="h-3 w-3" />
+                {formatTimeframe(horizon)}
+              </Button>
+            ))}
+          </div>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 gap-3">
-            {Object.entries(predictions).map(([timeframe, price]) => {
-              const change = calculateChange(price, currentPrice);
-              const isPositive = change >= 0;
-              const conf = confidence[timeframe as keyof typeof confidence];
-              
-              return (
-                <div key={timeframe} className="p-4 border rounded-lg hover:bg-gray-50 transition-colors">
-                  <div className="flex justify-between items-start mb-2">
-                    <span className="text-sm font-medium text-gray-600 uppercase">{timeframe}</span>
-                    <Badge className={getConfidenceColor(conf)}>
-                      {conf}% confidence
-                    </Badge>
+        <CardContent className="space-y-4">
+          {loading && <div className="text-center text-muted-foreground">Loading predictions...</div>}
+          {error && <div className="text-center text-red-500">Error: {error}</div>}
+          
+          {predictions.length === 0 && !loading && (
+            <div className="text-center text-muted-foreground py-8">
+              <TrendingUp className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p className="font-medium">No predictions yet</p>
+              <p className="text-sm">Generate your first AI prediction above</p>
+            </div>
+          )}
+
+          {predictions.slice(0, 5).map((pred) => {
+            const change = ((pred.predicted_price - pred.current_price) / pred.current_price) * 100;
+            const isPositive = change >= 0;
+            
+            return (
+              <div key={pred.id} className="flex items-center justify-between p-4 rounded-lg border hover:bg-muted/50 transition-colors">
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-1">
+                    <Clock className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm font-medium">{formatTimeframe(pred.prediction_horizon)}</span>
                   </div>
-                  <div className="space-y-1">
-                    <p className="text-lg font-bold text-gray-800">
-                      ${price.toLocaleString()}
-                    </p>
-                    <div className={`flex items-center space-x-1 ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
-                      {isPositive ? (
-                        <TrendingUp className="w-4 h-4" />
-                      ) : (
-                        <TrendingDown className="w-4 h-4" />
-                      )}
-                      <span className="text-sm font-medium">
-                        {isPositive ? '+' : ''}{change.toFixed(2)}%
-                      </span>
-                    </div>
+                  <div className="text-xs text-muted-foreground">
+                    {formatDate(pred.created_at)}
                   </div>
                 </div>
-              );
-            })}
-          </div>
+                <div className="text-right">
+                  <div className="font-semibold">${pred.predicted_price.toLocaleString()}</div>
+                  <div className="flex items-center gap-2">
+                    {isPositive ? (
+                      <TrendingUp className="h-3 w-3 text-green-500" />
+                    ) : (
+                      <TrendingDown className="h-3 w-3 text-red-500" />
+                    )}
+                    <span className={`text-xs ${isPositive ? 'text-green-500' : 'text-red-500'}`}>
+                      {isPositive ? '+' : ''}{change.toFixed(2)}%
+                    </span>
+                    <Badge variant="secondary" className="text-xs">
+                      {(pred.confidence_level * 100).toFixed(1)}%
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </CardContent>
       </Card>
 
-      {/* Model Accuracy */}
-      <Card className="crypto-glow">
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Target className="w-5 h-5 text-blue-500" />
-            <span>Model Performance</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-3 gap-4">
-            <div className="text-center">
-              <p className="text-sm text-gray-500 mb-1">RMSE</p>
-              <p className="text-xl font-bold text-gray-800">{accuracy.rmse}</p>
+      {/* Model Performance */}
+      {activeModel && (
+        <Card className="crypto-glow">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Target className="h-5 w-5 text-blue-500" />
+              Model Performance
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-3 gap-4">
+              <div className="text-center">
+                <p className="text-sm text-muted-foreground mb-1">Accuracy</p>
+                <p className="text-xl font-bold">{((activeModel.accuracy || 0) * 100).toFixed(1)}%</p>
+              </div>
+              <div className="text-center">
+                <p className="text-sm text-muted-foreground mb-1">MAE</p>
+                <p className="text-xl font-bold">${(activeModel.mae || 0).toFixed(0)}</p>
+              </div>
+              <div className="text-center">
+                <p className="text-sm text-muted-foreground mb-1">MAPE</p>
+                <p className="text-xl font-bold">{(activeModel.mape || 0).toFixed(1)}%</p>
+              </div>
             </div>
-            <div className="text-center">
-              <p className="text-sm text-gray-500 mb-1">MAE</p>
-              <p className="text-xl font-bold text-gray-800">{accuracy.mae}</p>
+            <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+              <p className="text-sm text-blue-800 text-center">
+                <strong>Model Status:</strong> {activeModel.name} v{activeModel.version} - 
+                Trained on {(activeModel.training_data_points || 0).toLocaleString()} data points
+              </p>
             </div>
-            <div className="text-center">
-              <p className="text-sm text-gray-500 mb-1">MAPE</p>
-              <p className="text-xl font-bold text-gray-800">{accuracy.mape}%</p>
-            </div>
-          </div>
-          <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-            <p className="text-sm text-blue-800 text-center">
-              <strong>Model Status:</strong> High accuracy LSTM model trained on 2+ years of data
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
