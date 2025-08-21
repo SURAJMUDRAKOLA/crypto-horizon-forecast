@@ -14,7 +14,139 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      evaluations: {
+        Row: {
+          absolute_error: number
+          actual_price: number
+          error_percentage: number
+          evaluated_at: string
+          id: string
+          is_correct: boolean
+          prediction_id: string
+        }
+        Insert: {
+          absolute_error: number
+          actual_price: number
+          error_percentage: number
+          evaluated_at?: string
+          id?: string
+          is_correct: boolean
+          prediction_id: string
+        }
+        Update: {
+          absolute_error?: number
+          actual_price?: number
+          error_percentage?: number
+          evaluated_at?: string
+          id?: string
+          is_correct?: boolean
+          prediction_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "evaluations_prediction_id_fkey"
+            columns: ["prediction_id"]
+            isOneToOne: false
+            referencedRelation: "predictions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      models: {
+        Row: {
+          accuracy: number | null
+          created_at: string
+          id: string
+          is_active: boolean
+          last_trained_at: string | null
+          mae: number | null
+          mape: number | null
+          model_type: string
+          name: string
+          symbol: string
+          training_data_points: number | null
+          updated_at: string
+          version: string
+        }
+        Insert: {
+          accuracy?: number | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          last_trained_at?: string | null
+          mae?: number | null
+          mape?: number | null
+          model_type?: string
+          name: string
+          symbol: string
+          training_data_points?: number | null
+          updated_at?: string
+          version?: string
+        }
+        Update: {
+          accuracy?: number | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          last_trained_at?: string | null
+          mae?: number | null
+          mape?: number | null
+          model_type?: string
+          name?: string
+          symbol?: string
+          training_data_points?: number | null
+          updated_at?: string
+          version?: string
+        }
+        Relationships: []
+      }
+      predictions: {
+        Row: {
+          confidence_level: number
+          created_at: string
+          current_price: number
+          id: string
+          is_evaluated: boolean
+          model_id: string
+          predicted_for: string
+          predicted_price: number
+          prediction_horizon: string
+          symbol: string
+        }
+        Insert: {
+          confidence_level: number
+          created_at?: string
+          current_price: number
+          id?: string
+          is_evaluated?: boolean
+          model_id: string
+          predicted_for: string
+          predicted_price: number
+          prediction_horizon: string
+          symbol: string
+        }
+        Update: {
+          confidence_level?: number
+          created_at?: string
+          current_price?: number
+          id?: string
+          is_evaluated?: boolean
+          model_id?: string
+          predicted_for?: string
+          predicted_price?: number
+          prediction_horizon?: string
+          symbol?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "predictions_model_id_fkey"
+            columns: ["model_id"]
+            isOneToOne: false
+            referencedRelation: "models"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
