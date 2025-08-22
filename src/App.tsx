@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Index from './pages/Index';
+import CoinDetails from './pages/CoinDetails';
 import AIModels from './pages/AIModels';
 import Analysis from './pages/Analysis';
 import Dashboard from './pages/Dashboard';
@@ -20,6 +21,7 @@ function App() {
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/coin/:symbol" element={<CoinDetails />} />
             <Route path="/ai-models" element={<AIModels />} />
             <Route path="/analysis" element={<Analysis />} />
             <Route path="/dashboard" element={<Dashboard />} />

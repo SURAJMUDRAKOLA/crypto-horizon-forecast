@@ -1,38 +1,24 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import LiveTicker from "@/components/LiveTicker";
 import ParallaxHero from "@/components/ParallaxHero";
-import CoinSelector from "@/components/CoinSelector";
 import ModernPriceCard from "@/components/ModernPriceCard";
-import PriceChart from "@/components/PriceChart";
-import TechnicalIndicators from "@/components/TechnicalIndicators";
-import PredictionPanel from "@/components/PredictionPanel";
 import LiveClock from "@/components/LiveClock";
 import GlassmorphismCard from "@/components/GlassmorphismCard";
 import { useCryptoData } from "@/hooks/useCryptoData";
 import { Loader2, Shield, AlertTriangle } from "lucide-react";
 
 const Index = () => {
+  const navigate = useNavigate();
   const [selectedCoin, setSelectedCoin] = useState("BTC");
   const [timeframe, setTimeframe] = useState("7D");
-  const { cryptoData, chartData, loading } = useCryptoData(selectedCoin, timeframe);
+  const { cryptoData, loading } = useCryptoData(selectedCoin, timeframe);
 
-  // Mock technical indicators data
-  const technicalData = {
-    rsi: 65.4,
-    macd: {
-      macd: 0.0234,
-      signal: 0.0189,
-      histogram: 0.0045
-    },
-    bollingerBands: {
-      upper: 44200,
-      middle: 42800,
-      lower: 41400,
-      current: 43150
-    }
+  const handleCoinClick = (coinSymbol: string) => {
+    navigate(`/coin/${coinSymbol}`);
   };
 
   if (loading) {
@@ -66,65 +52,49 @@ const Index = () => {
       <ParallaxHero />
       
       <main className="max-w-7xl mx-auto p-6 space-y-8">
-        {/* Top Section: Coin Selector, Featured Prices, and Live Clock */}
+        {/* Header Section */}
         <motion.div 
-          className="grid grid-cols-1 lg:grid-cols-5 gap-6"
+          className="text-center mb-8"
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2 }}
         >
-          <div className="lg:col-span-1">
-            <GlassmorphismCard className="p-4">
-              <CoinSelector selectedCoin={selectedCoin} onCoinChange={setSelectedCoin} />
-            </GlassmorphismCard>
-          </div>
-          <div className="lg:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-4">
-            {cryptoData.slice(0, 3).map((coin, index) => (
-              <ModernPriceCard key={coin.symbol} {...coin} index={index} />
-            ))}
-          </div>
-          <div className="lg:col-span-1">
-            <GlassmorphismCard className="p-4">
-              <LiveClock />
-            </GlassmorphismCard>
-          </div>
+          <h2 className="text-3xl font-bold text-foreground mb-4 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+            Cryptocurrency Market Overview
+          </h2>
+          <p className="text-muted-foreground max-w-2xl mx-auto">
+            Click on any cryptocurrency to view detailed predictions, technical analysis, and AI-powered forecasts.
+          </p>
         </motion.div>
 
-        {/* Main Chart Section */}
+        {/* Live Clock */}
         <motion.div 
-          className="grid grid-cols-1 xl:grid-cols-3 gap-6"
+          className="flex justify-center mb-8"
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.3 }}
+        >
+          <GlassmorphismCard className="p-4">
+            <LiveClock />
+          </GlassmorphismCard>
+        </motion.div>
+
+        {/* All Crypto Coins Grid */}
+        <motion.div 
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.4 }}
         >
-          <div className="xl:col-span-2">
-            <PriceChart 
-              data={chartData} 
-              selectedCoin={selectedCoin} 
-              timeframe={timeframe}
-              onTimeframeChange={setTimeframe}
-            />
-          </div>
-          <div className="xl:col-span-1">
-            <TechnicalIndicators {...technicalData} />
-          </div>
-        </motion.div>
-
-        {/* Predictions and Additional Data */}
-        <motion.div 
-          className="grid grid-cols-1 lg:grid-cols-2 gap-6"
-          initial={{ opacity: 0, y: 50 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.6 }}
-        >
-          <div>
-            <PredictionPanel selectedCoin={selectedCoin} />
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {cryptoData.slice(3, 7).map((coin, index) => (
-              <ModernPriceCard key={coin.symbol} {...coin} index={index + 3} />
-            ))}
-          </div>
+          {cryptoData.map((coin, index) => (
+            <div 
+              key={coin.symbol} 
+              onClick={() => handleCoinClick(coin.symbol)}
+              className="cursor-pointer transform transition-all duration-300 hover:scale-105"
+            >
+              <ModernPriceCard {...coin} index={index} />
+            </div>
+          ))}
         </motion.div>
 
         {/* Footer Info with Disclaimer */}
