@@ -30,7 +30,7 @@ const CandlestickChart = ({ data, selectedCoin, timeframe, onTimeframeChange, pr
   const [showPredictions, setShowPredictions] = useState(true);
   const [showVolume, setShowVolume] = useState(true);
 
-  const timeframes = ['1H', '4H', '1D', '7D', '1M', '3M'];
+  const timeframes = ['1D', '7D', '1M', '3M', '1Y'];
 
   // Custom candlestick component
   const Candlestick = (props: any) => {
