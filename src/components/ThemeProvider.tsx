@@ -1,17 +1,10 @@
 
 import * as React from "react"
 import { ThemeProvider as NextThemesProvider } from "next-themes"
+import type { ThemeProviderProps as NextThemeProviderProps } from "next-themes"
 
-interface ThemeProviderProps {
+interface ThemeProviderProps extends NextThemeProviderProps {
   children: React.ReactNode
-  attribute?: "class" | "data-theme" | "data-mode" | string
-  defaultTheme?: string
-  enableSystem?: boolean
-  disableTransitionOnChange?: boolean
-  storageKey?: string
-  themes?: string[]
-  forcedTheme?: string
-  enableColorScheme?: boolean
 }
 
 export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
