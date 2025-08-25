@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TrendingUp, TrendingDown, Clock, Zap, Target, Calendar } from "lucide-react";
 import { useSupabasePredictions } from "@/hooks/useSupabasePredictions";
 import { useCryptoData } from "@/hooks/useCryptoData";
+import { SupabaseApiService } from "@/services/supabaseApi";
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -17,6 +18,7 @@ const PredictionPanel = ({ selectedCoin }: PredictionPanelProps) => {
   const { cryptoData } = useCryptoData(selectedCoin, '1D');
   const [generating, setGenerating] = useState(false);
   const [selectedTimeframe, setSelectedTimeframe] = useState('1H');
+  const [futurePredictions, setFuturePredictions] = useState<any[]>([]);
   const { toast } = useToast();
 
   const currentCrypto = cryptoData.find(crypto => crypto.symbol === selectedCoin);
@@ -24,27 +26,13 @@ const PredictionPanel = ({ selectedCoin }: PredictionPanelProps) => {
   const activeModel = models[0]; // Get the most recent model
 
   const handleGeneratePrediction = async (horizon: string) => {
-    if (!currentPrice) {
-      toast({
-        title: "Error",
-        description: "Unable to fetch current price data",
-        variant: "destructive"
-      });
-      return;
-    }
-
     setGenerating(true);
     try {
-      // Generate mock historical prices for the API
-      const historicalPrices = Array.from({ length: 50 }, (_, i) => 
-        currentPrice * (1 + (Math.random() - 0.5) * 0.02 * (50 - i))
-      );
-
-      await generatePrediction(currentPrice, historicalPrices, horizon);
+      await generatePrediction(horizon);
       
       toast({
         title: "Prediction Generated",
-        description: `New ${horizon} prediction created successfully`,
+        description: `New ${horizon} LSTM prediction created successfully`,
       });
     } catch (err) {
       toast({
@@ -54,6 +42,18 @@ const PredictionPanel = ({ selectedCoin }: PredictionPanelProps) => {
       });
     } finally {
       setGenerating(false);
+    }
+  };
+
+  // Generate future predictions using the new service
+  const handleTimeframeChange = async (timeframe: string) => {
+    setSelectedTimeframe(timeframe);
+    try {
+      const predictions = await SupabaseApiService.generateFuturePredictions(selectedCoin, timeframe);
+      setFuturePredictions(predictions);
+    } catch (error) {
+      console.error('Error generating future predictions:', error);
+      setFuturePredictions([]);
     }
   };
 
@@ -70,71 +70,6 @@ const PredictionPanel = ({ selectedCoin }: PredictionPanelProps) => {
     return new Date(dateString).toLocaleString();
   };
 
-  // Generate future predictions based on timeframe
-  const generateFuturePredictions = (timeframe: string) => {
-    if (!currentPrice) return [];
-    
-    const predictions = [];
-    const basePrice = currentPrice;
-    const now = new Date();
-    
-    if (timeframe === '1H') {
-      // Next 12 hours, every 5 minutes
-      for (let i = 1; i <= 144; i++) {
-        const futureTime = new Date(now.getTime() + i * 5 * 60 * 1000);
-        const volatility = (Math.random() - 0.5) * 0.002; // ±0.2% volatility
-        const trendFactor = Math.sin(i * 0.05) * 0.001; // Subtle trend
-        const predictedPrice = basePrice * (1 + volatility + trendFactor);
-        
-        predictions.push({
-          time: futureTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-          price: Math.round(predictedPrice * 100) / 100,
-          confidence: 85 + Math.random() * 10
-        });
-      }
-    } else if (timeframe === '24H') {
-      // Next 24 hours, every hour
-      for (let i = 1; i <= 24; i++) {
-        const futureTime = new Date(now.getTime() + i * 60 * 60 * 1000);
-        const volatility = (Math.random() - 0.5) * 0.01; // ±1% volatility
-        const trendFactor = Math.sin(i * 0.2) * 0.005; // Trend component
-        const predictedPrice = basePrice * (1 + volatility + trendFactor);
-        
-        predictions.push({
-          time: futureTime.toLocaleString('en-US', { 
-            hour: '2-digit', 
-            minute: '2-digit',
-            day: 'numeric',
-            month: 'short'
-          }),
-          price: Math.round(predictedPrice * 100) / 100,
-          confidence: 80 + Math.random() * 15
-        });
-      }
-    } else if (timeframe === '7D') {
-      // Next 7 days, every 4 hours
-      for (let i = 1; i <= 42; i++) {
-        const futureTime = new Date(now.getTime() + i * 4 * 60 * 60 * 1000);
-        const volatility = (Math.random() - 0.5) * 0.02; // ±2% volatility
-        const trendFactor = Math.sin(i * 0.15) * 0.01; // Weekly trend
-        const predictedPrice = basePrice * (1 + volatility + trendFactor);
-        
-        predictions.push({
-          time: futureTime.toLocaleString('en-US', { 
-            weekday: 'short',
-            hour: '2-digit',
-            day: 'numeric',
-            month: 'short'
-          }),
-          price: Math.round(predictedPrice * 100) / 100,
-          confidence: 70 + Math.random() * 20
-        });
-      }
-    }
-    
-    return predictions;
-  };
-
   return (
     <div className="space-y-6">
       {/* AI Forecasts with Timeline */}
@@ -146,7 +81,7 @@ const PredictionPanel = ({ selectedCoin }: PredictionPanelProps) => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <Tabs value={selectedTimeframe} onValueChange={setSelectedTimeframe} className="w-full">
+          <Tabs value={selectedTimeframe} onValueChange={handleTimeframeChange} className="w-full">
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="1H">Next Hour</TabsTrigger>
               <TabsTrigger value="24H">Next 24 Hours</TabsTrigger>
@@ -156,8 +91,8 @@ const PredictionPanel = ({ selectedCoin }: PredictionPanelProps) => {
             {['1H', '24H', '7D'].map((timeframe) => (
               <TabsContent key={timeframe} value={timeframe} className="mt-4">
                 <div className="space-y-3 max-h-96 overflow-y-auto">
-                  {generateFuturePredictions(timeframe).slice(0, 20).map((pred, index) => {
-                    const change = ((pred.price - currentPrice) / currentPrice) * 100;
+                  {futurePredictions.slice(0, 20).map((pred, index) => {
+                    const change = currentPrice > 0 ? ((pred.price - currentPrice) / currentPrice) * 100 : 0;
                     const isPositive = change >= 0;
                     
                     return (
@@ -189,6 +124,13 @@ const PredictionPanel = ({ selectedCoin }: PredictionPanelProps) => {
                       </div>
                     );
                   })}
+                  {futurePredictions.length === 0 && (
+                    <div className="text-center text-muted-foreground py-4">
+                      <Clock className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                      <p className="font-medium">Loading future predictions...</p>
+                      <p className="text-sm">Select a timeframe to see AI forecasts</p>
+                    </div>
+                  )}
                 </div>
               </TabsContent>
             ))}
@@ -201,7 +143,7 @@ const PredictionPanel = ({ selectedCoin }: PredictionPanelProps) => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Zap className="h-5 w-5 text-yellow-500" />
-            Generate LSTM Predictions
+            Generate Enhanced LSTM Predictions
           </CardTitle>
           <div className="flex gap-2">
             {['1H', '24H', '7D'].map((horizon) => (
@@ -227,7 +169,7 @@ const PredictionPanel = ({ selectedCoin }: PredictionPanelProps) => {
             <div className="text-center text-muted-foreground py-4">
               <TrendingUp className="h-8 w-8 mx-auto mb-2 opacity-50" />
               <p className="font-medium">No LSTM predictions yet</p>
-              <p className="text-sm">Generate your first AI prediction above</p>
+              <p className="text-sm">Generate your first enhanced AI prediction above</p>
             </div>
           )}
 
@@ -274,7 +216,7 @@ const PredictionPanel = ({ selectedCoin }: PredictionPanelProps) => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Target className="h-5 w-5 text-blue-500" />
-              Model Performance
+              Enhanced LSTM Model Performance
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -295,7 +237,7 @@ const PredictionPanel = ({ selectedCoin }: PredictionPanelProps) => {
             <div className="mt-4 p-3 bg-blue-50 rounded-lg">
               <p className="text-sm text-blue-800 text-center">
                 <strong>Model Status:</strong> {activeModel.name} v{activeModel.version} - 
-                Trained on {(activeModel.training_data_points || 0).toLocaleString()} data points
+                Enhanced LSTM with {(activeModel.training_data_points || 0).toLocaleString()} training points
               </p>
             </div>
           </CardContent>

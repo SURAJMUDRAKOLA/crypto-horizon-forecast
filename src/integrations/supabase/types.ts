@@ -52,10 +52,128 @@ export type Database = {
           },
         ]
       }
+      holdings: {
+        Row: {
+          average_buy_price: number
+          created_at: string
+          current_value: number | null
+          id: string
+          portfolio_id: string
+          profit_loss: number | null
+          profit_loss_percentage: number | null
+          quantity: number
+          symbol: string
+          total_invested: number
+          updated_at: string
+        }
+        Insert: {
+          average_buy_price: number
+          created_at?: string
+          current_value?: number | null
+          id?: string
+          portfolio_id: string
+          profit_loss?: number | null
+          profit_loss_percentage?: number | null
+          quantity: number
+          symbol: string
+          total_invested: number
+          updated_at?: string
+        }
+        Update: {
+          average_buy_price?: number
+          created_at?: string
+          current_value?: number | null
+          id?: string
+          portfolio_id?: string
+          profit_loss?: number | null
+          profit_loss_percentage?: number | null
+          quantity?: number
+          symbol?: string
+          total_invested?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "holdings_portfolio_id_fkey"
+            columns: ["portfolio_id"]
+            isOneToOne: false
+            referencedRelation: "portfolios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      market_data: {
+        Row: {
+          ath: number | null
+          ath_date: string | null
+          atl: number | null
+          atl_date: string | null
+          circulating_supply: number | null
+          created_at: string
+          current_price: number
+          high_24h: number | null
+          id: string
+          image_url: string | null
+          last_updated: string
+          low_24h: number | null
+          market_cap: number | null
+          max_supply: number | null
+          name: string
+          price_change_24h: number | null
+          price_change_percentage_24h: number | null
+          symbol: string
+          total_volume: number | null
+        }
+        Insert: {
+          ath?: number | null
+          ath_date?: string | null
+          atl?: number | null
+          atl_date?: string | null
+          circulating_supply?: number | null
+          created_at?: string
+          current_price: number
+          high_24h?: number | null
+          id?: string
+          image_url?: string | null
+          last_updated?: string
+          low_24h?: number | null
+          market_cap?: number | null
+          max_supply?: number | null
+          name: string
+          price_change_24h?: number | null
+          price_change_percentage_24h?: number | null
+          symbol: string
+          total_volume?: number | null
+        }
+        Update: {
+          ath?: number | null
+          ath_date?: string | null
+          atl?: number | null
+          atl_date?: string | null
+          circulating_supply?: number | null
+          created_at?: string
+          current_price?: number
+          high_24h?: number | null
+          id?: string
+          image_url?: string | null
+          last_updated?: string
+          low_24h?: number | null
+          market_cap?: number | null
+          max_supply?: number | null
+          name?: string
+          price_change_24h?: number | null
+          price_change_percentage_24h?: number | null
+          symbol?: string
+          total_volume?: number | null
+        }
+        Relationships: []
+      }
       models: {
         Row: {
           accuracy: number | null
           created_at: string
+          feature_importance: Json | null
+          hyperparameters: Json | null
           id: string
           is_active: boolean
           last_trained_at: string | null
@@ -64,13 +182,17 @@ export type Database = {
           model_type: string
           name: string
           symbol: string
+          training_config: Json | null
           training_data_points: number | null
           updated_at: string
+          validation_metrics: Json | null
           version: string
         }
         Insert: {
           accuracy?: number | null
           created_at?: string
+          feature_importance?: Json | null
+          hyperparameters?: Json | null
           id?: string
           is_active?: boolean
           last_trained_at?: string | null
@@ -79,13 +201,17 @@ export type Database = {
           model_type?: string
           name: string
           symbol: string
+          training_config?: Json | null
           training_data_points?: number | null
           updated_at?: string
+          validation_metrics?: Json | null
           version?: string
         }
         Update: {
           accuracy?: number | null
           created_at?: string
+          feature_importance?: Json | null
+          hyperparameters?: Json | null
           id?: string
           is_active?: boolean
           last_trained_at?: string | null
@@ -94,47 +220,139 @@ export type Database = {
           model_type?: string
           name?: string
           symbol?: string
+          training_config?: Json | null
           training_data_points?: number | null
           updated_at?: string
+          validation_metrics?: Json | null
           version?: string
+        }
+        Relationships: []
+      }
+      ohlcv_data: {
+        Row: {
+          close_price: number
+          created_at: string
+          high_price: number
+          id: string
+          low_price: number
+          market_cap: number | null
+          open_price: number
+          symbol: string
+          timeframe: string
+          timestamp: string
+          volume: number
+        }
+        Insert: {
+          close_price: number
+          created_at?: string
+          high_price: number
+          id?: string
+          low_price: number
+          market_cap?: number | null
+          open_price: number
+          symbol: string
+          timeframe?: string
+          timestamp: string
+          volume: number
+        }
+        Update: {
+          close_price?: number
+          created_at?: string
+          high_price?: number
+          id?: string
+          low_price?: number
+          market_cap?: number | null
+          open_price?: number
+          symbol?: string
+          timeframe?: string
+          timestamp?: string
+          volume?: number
+        }
+        Relationships: []
+      }
+      portfolios: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          total_value: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          total_value?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          total_value?: number | null
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
       predictions: {
         Row: {
+          actual_price: number | null
           confidence_level: number
           created_at: string
           current_price: number
+          error_calculated: boolean | null
+          features: Json | null
           id: string
           is_evaluated: boolean
+          mae: number | null
+          mape: number | null
           model_id: string
           predicted_for: string
           predicted_price: number
           prediction_horizon: string
+          rmse: number | null
           symbol: string
         }
         Insert: {
+          actual_price?: number | null
           confidence_level: number
           created_at?: string
           current_price: number
+          error_calculated?: boolean | null
+          features?: Json | null
           id?: string
           is_evaluated?: boolean
+          mae?: number | null
+          mape?: number | null
           model_id: string
           predicted_for: string
           predicted_price: number
           prediction_horizon: string
+          rmse?: number | null
           symbol: string
         }
         Update: {
+          actual_price?: number | null
           confidence_level?: number
           created_at?: string
           current_price?: number
+          error_calculated?: boolean | null
+          features?: Json | null
           id?: string
           is_evaluated?: boolean
+          mae?: number | null
+          mape?: number | null
           model_id?: string
           predicted_for?: string
           predicted_price?: number
           prediction_horizon?: string
+          rmse?: number | null
           symbol?: string
         }
         Relationships: [
@@ -146,6 +364,162 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      price_alerts: {
+        Row: {
+          alert_type: string
+          created_at: string
+          id: string
+          is_active: boolean
+          message: string | null
+          percentage_threshold: number | null
+          symbol: string
+          target_price: number | null
+          triggered_at: string | null
+          user_id: string
+        }
+        Insert: {
+          alert_type: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          message?: string | null
+          percentage_threshold?: number | null
+          symbol: string
+          target_price?: number | null
+          triggered_at?: string | null
+          user_id: string
+        }
+        Update: {
+          alert_type?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          message?: string | null
+          percentage_threshold?: number | null
+          symbol?: string
+          target_price?: number | null
+          triggered_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      technical_indicators: {
+        Row: {
+          atr: number | null
+          bb_bandwidth: number | null
+          bb_lower: number | null
+          bb_middle: number | null
+          bb_upper: number | null
+          created_at: string
+          ema_10: number | null
+          ema_20: number | null
+          ema_50: number | null
+          id: string
+          macd: number | null
+          macd_histogram: number | null
+          macd_signal: number | null
+          rsi_14: number | null
+          sma_10: number | null
+          sma_20: number | null
+          sma_200: number | null
+          sma_50: number | null
+          stoch_d: number | null
+          stoch_k: number | null
+          symbol: string
+          timeframe: string
+          timestamp: string
+          williams_r: number | null
+        }
+        Insert: {
+          atr?: number | null
+          bb_bandwidth?: number | null
+          bb_lower?: number | null
+          bb_middle?: number | null
+          bb_upper?: number | null
+          created_at?: string
+          ema_10?: number | null
+          ema_20?: number | null
+          ema_50?: number | null
+          id?: string
+          macd?: number | null
+          macd_histogram?: number | null
+          macd_signal?: number | null
+          rsi_14?: number | null
+          sma_10?: number | null
+          sma_20?: number | null
+          sma_200?: number | null
+          sma_50?: number | null
+          stoch_d?: number | null
+          stoch_k?: number | null
+          symbol: string
+          timeframe?: string
+          timestamp: string
+          williams_r?: number | null
+        }
+        Update: {
+          atr?: number | null
+          bb_bandwidth?: number | null
+          bb_lower?: number | null
+          bb_middle?: number | null
+          bb_upper?: number | null
+          created_at?: string
+          ema_10?: number | null
+          ema_20?: number | null
+          ema_50?: number | null
+          id?: string
+          macd?: number | null
+          macd_histogram?: number | null
+          macd_signal?: number | null
+          rsi_14?: number | null
+          sma_10?: number | null
+          sma_20?: number | null
+          sma_200?: number | null
+          sma_50?: number | null
+          stoch_d?: number | null
+          stoch_k?: number | null
+          symbol?: string
+          timeframe?: string
+          timestamp?: string
+          williams_r?: number | null
+        }
+        Relationships: []
+      }
+      training_data: {
+        Row: {
+          created_at: string
+          features: Json | null
+          id: string
+          price: number
+          symbol: string
+          target_price: number | null
+          timeframe: string
+          timestamp: string
+          volume: number
+        }
+        Insert: {
+          created_at?: string
+          features?: Json | null
+          id?: string
+          price: number
+          symbol: string
+          target_price?: number | null
+          timeframe?: string
+          timestamp: string
+          volume: number
+        }
+        Update: {
+          created_at?: string
+          features?: Json | null
+          id?: string
+          price?: number
+          symbol?: string
+          target_price?: number | null
+          timeframe?: string
+          timestamp?: string
+          volume?: number
+        }
+        Relationships: []
       }
     }
     Views: {
