@@ -144,22 +144,23 @@ serve(async (req) => {
 
     await Promise.all(ohlcvPromises);
 
-    // Return the processed data
+    // Return the processed data - always get fresh data from database
     const { data: marketData, error: fetchError } = await supabase
       .from('market_data')
       .select('*')
-      .in('symbol', symbols)
       .order('market_cap', { ascending: false });
 
     if (fetchError) {
+      console.error('Error fetching stored data:', fetchError);
       throw new Error('Error fetching stored data: ' + fetchError.message);
     }
 
     console.log('Successfully processed market data for', marketData?.length || 0, 'coins');
+    console.log('Market data symbols:', marketData?.map(d => d.symbol).join(', '));
 
     return new Response(JSON.stringify({
       success: true,
-      data: marketData,
+      data: marketData || [],
       message: `Successfully updated market data for ${marketData?.length || 0} cryptocurrencies`
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

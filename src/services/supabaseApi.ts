@@ -96,6 +96,20 @@ export class SupabaseApiService {
         throw new Error(data.error || 'Failed to fetch market data');
       }
 
+      // Even if successful, check if we got data
+      if (!data.data || data.data.length === 0) {
+        console.warn('Edge function returned empty data, falling back to database');
+        
+        // Fallback: get from database if edge function returns empty data
+        const { data: dbData, error: dbError } = await supabase
+          .from('market_data')
+          .select('*')
+          .order('market_cap', { ascending: false });
+
+        if (dbError) throw dbError;
+        return dbData || [];
+      }
+
       return data.data;
     } catch (error) {
       console.error('Error fetching market data:', error);
