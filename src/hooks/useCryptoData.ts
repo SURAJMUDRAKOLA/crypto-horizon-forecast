@@ -70,17 +70,42 @@ export const useCryptoData = (selectedCoin: string, timeframe: string = '7D') =>
       let timeLabel: string;
 
       if (timeframe === '1D') {
-        timeLabel = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+        timeLabel = date.toLocaleTimeString('en-IN', { 
+          timeZone: 'Asia/Kolkata',
+          hour: '2-digit', 
+          minute: '2-digit' 
+        });
       } else if (timeframe === '7D') {
-        timeLabel = date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+        timeLabel = date.toLocaleDateString('en-IN', { 
+          timeZone: 'Asia/Kolkata',
+          weekday: 'short', 
+          month: 'short', 
+          day: 'numeric' 
+        });
       } else if (timeframe === '1M') {
-        timeLabel = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        timeLabel = date.toLocaleDateString('en-IN', { 
+          timeZone: 'Asia/Kolkata',
+          month: 'short', 
+          day: 'numeric' 
+        });
       } else if (timeframe === '3M') {
-        timeLabel = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        timeLabel = date.toLocaleDateString('en-IN', { 
+          timeZone: 'Asia/Kolkata',
+          month: 'short', 
+          day: 'numeric' 
+        });
       } else if (timeframe === '1Y') {
-        timeLabel = date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+        timeLabel = date.toLocaleDateString('en-IN', { 
+          timeZone: 'Asia/Kolkata',
+          month: 'short', 
+          year: '2-digit' 
+        });
       } else {
-        timeLabel = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        timeLabel = date.toLocaleDateString('en-IN', { 
+          timeZone: 'Asia/Kolkata',
+          month: 'short', 
+          day: 'numeric' 
+        });
       }
 
       return {
@@ -125,22 +150,49 @@ export const useCryptoData = (selectedCoin: string, timeframe: string = '7D') =>
 
     const basePrice = 40000; // Base price for synthetic data
     
+    // Generate data starting from past and ending at current time (aligned with live clock)
     for (let i = points - 1; i >= 0; i--) {
       const date = new Date(now.getTime() - i * interval);
       let timeLabel: string;
 
+      // Use IST timezone to match the live clock
       if (timeframe === '1D') {
-        timeLabel = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+        timeLabel = date.toLocaleTimeString('en-IN', { 
+          timeZone: 'Asia/Kolkata',
+          hour: '2-digit', 
+          minute: '2-digit' 
+        });
       } else if (timeframe === '7D') {
-        timeLabel = date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+        timeLabel = date.toLocaleDateString('en-IN', { 
+          timeZone: 'Asia/Kolkata',
+          weekday: 'short', 
+          month: 'short', 
+          day: 'numeric' 
+        });
       } else if (timeframe === '1M') {
-        timeLabel = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        timeLabel = date.toLocaleDateString('en-IN', { 
+          timeZone: 'Asia/Kolkata',
+          month: 'short', 
+          day: 'numeric' 
+        });
       } else if (timeframe === '3M') {
-        timeLabel = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        timeLabel = date.toLocaleDateString('en-IN', { 
+          timeZone: 'Asia/Kolkata',
+          month: 'short', 
+          day: 'numeric' 
+        });
       } else if (timeframe === '1Y') {
-        timeLabel = date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+        timeLabel = date.toLocaleDateString('en-IN', { 
+          timeZone: 'Asia/Kolkata',
+          month: 'short', 
+          year: '2-digit' 
+        });
       } else {
-        timeLabel = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        timeLabel = date.toLocaleDateString('en-IN', { 
+          timeZone: 'Asia/Kolkata',
+          month: 'short', 
+          day: 'numeric' 
+        });
       }
 
       const volatility = (Math.random() - 0.5) * 0.1; // ±5% volatility
@@ -164,8 +216,10 @@ export const useCryptoData = (selectedCoin: string, timeframe: string = '7D') =>
       setError(null);
       
       try {
-        // Get market data (this will fetch fresh data from CoinGecko)
-        const marketData = await SupabaseApiService.fetchMarketData();
+        // Get market data (this will fetch fresh data from CoinGecko and ensure BNB is included)
+        console.log('Fetching market data for all supported coins including BNB...');
+        const marketData = await SupabaseApiService.fetchMarketData(['BTC', 'ETH', 'BNB', 'XRP', 'SOL', 'ADA', 'DOT', 'LINK']);
+        console.log('Market data received:', marketData.map(coin => coin.symbol));
         setCryptoData(convertMarketDataToCryptoData(marketData));
 
         // Get OHLCV data for selected coin
@@ -190,7 +244,9 @@ export const useCryptoData = (selectedCoin: string, timeframe: string = '7D') =>
         
         // Fallback to stored data
         try {
-          const storedData = await SupabaseApiService.getMarketData();
+          console.log('Trying fallback data fetch...');
+          const storedData = await SupabaseApiService.getMarketData(['BTC', 'ETH', 'BNB', 'XRP', 'SOL', 'ADA', 'DOT', 'LINK']);
+          console.log('Stored data received:', storedData.map(coin => coin.symbol));
           if (storedData.length > 0) {
             setCryptoData(convertMarketDataToCryptoData(storedData));
           }
@@ -209,7 +265,7 @@ export const useCryptoData = (selectedCoin: string, timeframe: string = '7D') =>
   useEffect(() => {
     const interval = setInterval(async () => {
       try {
-        const marketData = await SupabaseApiService.getMarketData();
+        const marketData = await SupabaseApiService.getMarketData(['BTC', 'ETH', 'BNB', 'XRP', 'SOL', 'ADA', 'DOT', 'LINK']);
         setCryptoData(convertMarketDataToCryptoData(marketData));
       } catch (error) {
         console.error('Error updating crypto data:', error);
