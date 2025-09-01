@@ -87,7 +87,7 @@ export class SupabaseApiService {
   static async fetchMarketData(symbols?: string[]): Promise<MarketData[]> {
     try {
       const { data, error } = await supabase.functions.invoke('fetch-market-data', {
-        body: { symbols: symbols || ['BTC', 'ETH', 'SOL', 'ADA', 'LINK', 'DOT'] }
+        body: { symbols: symbols || ['BTC', 'ETH', 'BNB', 'XRP', 'SOL', 'ADA', 'DOT', 'LINK'] }
       });
 
       if (error) throw error;

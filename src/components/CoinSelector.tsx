@@ -9,10 +9,12 @@ interface CoinSelectorProps {
 const coins = [
   { symbol: "BTC", name: "Bitcoin", icon: "₿" },
   { symbol: "ETH", name: "Ethereum", icon: "Ξ" },
+  { symbol: "BNB", name: "BNB", icon: "⬢" },
+  { symbol: "XRP", name: "XRP", icon: "⟁" },
+  { symbol: "SOL", name: "Solana", icon: "◎" },
   { symbol: "ADA", name: "Cardano", icon: "₳" },
   { symbol: "DOT", name: "Polkadot", icon: "●" },
   { symbol: "LINK", name: "Chainlink", icon: "⬢" },
-  { symbol: "SOL", name: "Solana", icon: "◎" },
 ];
 
 const CoinSelector = ({ selectedCoin, onCoinChange }: CoinSelectorProps) => {

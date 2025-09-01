@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { TrendingUp, TrendingDown } from "lucide-react";
+import { SupabaseApiService } from "@/services/supabaseApi";
 
 interface TickerData {
   symbol: string;
@@ -10,24 +11,49 @@ interface TickerData {
   icon: string;
 }
 
+const coinIcons: Record<string, string> = {
+  BTC: "₿",
+  ETH: "Ξ", 
+  BNB: "⬢",
+  XRP: "⟁",
+  SOL: "◎",
+  ADA: "₳",
+  DOT: "●",
+  LINK: "⬢"
+};
+
 const LiveTicker = () => {
-  const [tickerData, setTickerData] = useState<TickerData[]>([
-    { symbol: "BTC", price: 43250, change: 2.45, icon: "₿" },
-    { symbol: "ETH", price: 2680, change: -1.23, icon: "Ξ" },
-    { symbol: "ADA", price: 0.45, change: 3.87, icon: "₳" },
-    { symbol: "SOL", price: 98.76, change: 5.23, icon: "◎" },
-    { symbol: "DOT", price: 7.89, change: -2.14, icon: "●" },
-    { symbol: "LINK", price: 14.56, change: 1.78, icon: "⬢" },
-  ]);
+  const [tickerData, setTickerData] = useState<TickerData[]>([]);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setTickerData(prev => prev.map(coin => ({
-        ...coin,
-        price: coin.price * (1 + (Math.random() - 0.5) * 0.001),
-        change: coin.change + (Math.random() - 0.5) * 0.1
-      })));
-    }, 3000);
+    const fetchData = async () => {
+      try {
+        const marketData = await SupabaseApiService.fetchMarketData(['BTC', 'ETH', 'BNB', 'XRP', 'SOL', 'ADA', 'DOT', 'LINK']);
+        const ticker = marketData.map(coin => ({
+          symbol: coin.symbol,
+          price: coin.current_price,
+          change: coin.price_change_percentage_24h || 0,
+          icon: coinIcons[coin.symbol] || "◦"
+        }));
+        setTickerData(ticker);
+      } catch (error) {
+        console.error('Error fetching ticker data:', error);
+        // Fallback data
+        setTickerData([
+          { symbol: "BTC", price: 43250, change: 2.45, icon: "₿" },
+          { symbol: "ETH", price: 2680, change: -1.23, icon: "Ξ" },
+          { symbol: "BNB", price: 310, change: 1.87, icon: "⬢" },
+          { symbol: "XRP", price: 0.52, change: -0.65, icon: "⟁" },
+          { symbol: "SOL", price: 98.76, change: 5.23, icon: "◎" },
+          { symbol: "ADA", price: 0.45, change: 3.87, icon: "₳" },
+          { symbol: "DOT", price: 7.89, change: -2.14, icon: "●" },
+          { symbol: "LINK", price: 14.56, change: 1.78, icon: "⬢" },
+        ]);
+      }
+    };
+
+    fetchData();
+    const interval = setInterval(fetchData, 30000); // Update every 30 seconds
 
     return () => clearInterval(interval);
   }, []);

@@ -35,10 +35,12 @@ interface CoinGeckoData {
 const coinIdMap: Record<string, string> = {
   BTC: 'bitcoin',
   ETH: 'ethereum',
+  BNB: 'binancecoin',
+  XRP: 'ripple',
+  SOL: 'solana',
   ADA: 'cardano',
   DOT: 'polkadot',
-  LINK: 'chainlink',
-  SOL: 'solana'
+  LINK: 'chainlink'
 };
 
 serve(async (req) => {
@@ -47,7 +49,7 @@ serve(async (req) => {
   }
 
   try {
-    const { symbols = ['BTC', 'ETH', 'SOL', 'ADA', 'LINK', 'DOT'] } = await req.json().catch(() => ({ symbols: ['BTC', 'ETH', 'SOL', 'ADA', 'LINK', 'DOT'] }));
+    const { symbols = ['BTC', 'ETH', 'BNB', 'XRP', 'SOL', 'ADA', 'DOT', 'LINK'] } = await req.json().catch(() => ({ symbols: ['BTC', 'ETH', 'BNB', 'XRP', 'SOL', 'ADA', 'DOT', 'LINK'] }));
     
     console.log('Fetching market data for symbols:', symbols);
 
