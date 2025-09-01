@@ -14,94 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      evaluations: {
-        Row: {
-          absolute_error: number
-          actual_price: number
-          error_percentage: number
-          evaluated_at: string
-          id: string
-          is_correct: boolean
-          prediction_id: string
-        }
-        Insert: {
-          absolute_error: number
-          actual_price: number
-          error_percentage: number
-          evaluated_at?: string
-          id?: string
-          is_correct: boolean
-          prediction_id: string
-        }
-        Update: {
-          absolute_error?: number
-          actual_price?: number
-          error_percentage?: number
-          evaluated_at?: string
-          id?: string
-          is_correct?: boolean
-          prediction_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "evaluations_prediction_id_fkey"
-            columns: ["prediction_id"]
-            isOneToOne: false
-            referencedRelation: "predictions"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      holdings: {
-        Row: {
-          average_buy_price: number
-          created_at: string
-          current_value: number | null
-          id: string
-          portfolio_id: string
-          profit_loss: number | null
-          profit_loss_percentage: number | null
-          quantity: number
-          symbol: string
-          total_invested: number
-          updated_at: string
-        }
-        Insert: {
-          average_buy_price: number
-          created_at?: string
-          current_value?: number | null
-          id?: string
-          portfolio_id: string
-          profit_loss?: number | null
-          profit_loss_percentage?: number | null
-          quantity: number
-          symbol: string
-          total_invested: number
-          updated_at?: string
-        }
-        Update: {
-          average_buy_price?: number
-          created_at?: string
-          current_value?: number | null
-          id?: string
-          portfolio_id?: string
-          profit_loss?: number | null
-          profit_loss_percentage?: number | null
-          quantity?: number
-          symbol?: string
-          total_invested?: number
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "holdings_portfolio_id_fkey"
-            columns: ["portfolio_id"]
-            isOneToOne: false
-            referencedRelation: "portfolios"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       market_data: {
         Row: {
           ath: number | null
@@ -270,36 +182,6 @@ export type Database = {
         }
         Relationships: []
       }
-      portfolios: {
-        Row: {
-          created_at: string
-          description: string | null
-          id: string
-          name: string
-          total_value: number | null
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          description?: string | null
-          id?: string
-          name?: string
-          total_value?: number | null
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          description?: string | null
-          id?: string
-          name?: string
-          total_value?: number | null
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       predictions: {
         Row: {
           actual_price: number | null
@@ -364,45 +246,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      price_alerts: {
-        Row: {
-          alert_type: string
-          created_at: string
-          id: string
-          is_active: boolean
-          message: string | null
-          percentage_threshold: number | null
-          symbol: string
-          target_price: number | null
-          triggered_at: string | null
-          user_id: string
-        }
-        Insert: {
-          alert_type: string
-          created_at?: string
-          id?: string
-          is_active?: boolean
-          message?: string | null
-          percentage_threshold?: number | null
-          symbol: string
-          target_price?: number | null
-          triggered_at?: string | null
-          user_id: string
-        }
-        Update: {
-          alert_type?: string
-          created_at?: string
-          id?: string
-          is_active?: boolean
-          message?: string | null
-          percentage_threshold?: number | null
-          symbol?: string
-          target_price?: number | null
-          triggered_at?: string | null
-          user_id?: string
-        }
-        Relationships: []
       }
       technical_indicators: {
         Row: {
@@ -482,42 +325,6 @@ export type Database = {
           timeframe?: string
           timestamp?: string
           williams_r?: number | null
-        }
-        Relationships: []
-      }
-      training_data: {
-        Row: {
-          created_at: string
-          features: Json | null
-          id: string
-          price: number
-          symbol: string
-          target_price: number | null
-          timeframe: string
-          timestamp: string
-          volume: number
-        }
-        Insert: {
-          created_at?: string
-          features?: Json | null
-          id?: string
-          price: number
-          symbol: string
-          target_price?: number | null
-          timeframe?: string
-          timestamp: string
-          volume: number
-        }
-        Update: {
-          created_at?: string
-          features?: Json | null
-          id?: string
-          price?: number
-          symbol?: string
-          target_price?: number | null
-          timeframe?: string
-          timestamp?: string
-          volume?: number
         }
         Relationships: []
       }
