@@ -1,12 +1,14 @@
 
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
+import { SupabaseApiService } from '@/services/supabaseApi';
+import { useSupabasePredictions } from '@/hooks/useSupabasePredictions';
 
 interface PriceChartProps {
   data: Array<{
     time: string;
-    price?: number; // Made optional since we're showing predictions only
+    price?: number;
     predicted?: number;
   }>;
   selectedCoin: string;
@@ -16,15 +18,73 @@ interface PriceChartProps {
 
 const PriceChart = ({ data, selectedCoin, timeframe, onTimeframeChange }: PriceChartProps) => {
   const [chartType, setChartType] = useState<'line' | 'area'>('area');
+  const [combinedData, setCombinedData] = useState(data);
+  const [realTimeData, setRealTimeData] = useState<any[]>([]);
+  const { predictions } = useSupabasePredictions(selectedCoin);
 
-  const timeframes = ['1D', '7D', '1M', '3M', '1Y'];
+  const timeframes = ['1H', '1D', '7D', '1M', '3M', '1Y'];
+
+  // Fetch real-time market data and future predictions
+  useEffect(() => {
+    const fetchRealTimeData = async () => {
+      try {
+        // Get current market data
+        const marketData = await SupabaseApiService.getMarketData([selectedCoin]);
+        const currentPrice = marketData[0]?.current_price || 0;
+        
+        // Generate future predictions based on timeframe
+        const futurePredictions = await SupabaseApiService.generateFuturePredictions(selectedCoin, timeframe);
+        
+        // Combine historical data with current price point
+        const now = new Date();
+        const currentDataPoint = {
+          time: now.toLocaleTimeString('en-IN', { 
+            timeZone: 'Asia/Kolkata',
+            hour: '2-digit', 
+            minute: '2-digit',
+            ...(timeframe !== '1H' && { day: 'numeric', month: 'short' })
+          }),
+          price: currentPrice,
+          predicted: currentPrice
+        };
+
+        // Prepare future prediction data
+        const futureData = futurePredictions.map(pred => ({
+          time: pred.time,
+          price: undefined, // No actual price for future
+          predicted: pred.price,
+          confidence: pred.confidence
+        }));
+
+        // Combine all data: historical + current + future
+        const combined = [...data, currentDataPoint, ...futureData];
+        setCombinedData(combined);
+        setRealTimeData(futureData);
+        
+      } catch (error) {
+        console.error('Error fetching real-time data:', error);
+        setCombinedData(data);
+      }
+    };
+
+    fetchRealTimeData();
+    
+    // Set up real-time updates every 30 seconds
+    const interval = setInterval(fetchRealTimeData, 30000);
+    return () => clearInterval(interval);
+  }, [selectedCoin, timeframe, data, predictions]);
 
   return (
-    <div className="bg-white rounded-xl p-6 shadow-lg crypto-glow">
+    <div className="bg-card rounded-xl p-6 shadow-lg crypto-glow border">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h3 className="text-xl font-bold text-gray-800">{selectedCoin} Future Predictions</h3>
-          <p className="text-sm text-gray-500">LSTM AI-Powered Price Forecasts</p>
+          <h3 className="text-xl font-bold text-foreground">{selectedCoin} Real-Time & LSTM Predictions</h3>
+          <p className="text-sm text-muted-foreground">Live Price Data with AI-Powered Forecasts</p>
+          {realTimeData.length > 0 && (
+            <p className="text-xs text-green-600 dark:text-green-400">
+              ● Live • {realTimeData.length} future predictions loaded
+            </p>
+          )}
         </div>
         
         <div className="flex space-x-2">
@@ -59,60 +119,87 @@ const PriceChart = ({ data, selectedCoin, timeframe, onTimeframeChange }: PriceC
         </Button>
       </div>
 
-      <div className="h-80 chart-container rounded-lg p-4">
+      <div className="h-80 chart-container rounded-lg p-4 bg-card">
         <ResponsiveContainer width="100%" height="100%">
           {chartType === 'area' ? (
-            <AreaChart data={data}>
+            <AreaChart data={combinedData}>
               <defs>
                 <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#667eea" stopOpacity={0.8}/>
-                  <stop offset="95%" stopColor="#667eea" stopOpacity={0.1}/>
+                  <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.8}/>
+                  <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0.1}/>
                 </linearGradient>
                 <linearGradient id="colorPredicted" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#f7971e" stopOpacity={0.8}/>
-                  <stop offset="95%" stopColor="#f7971e" stopOpacity={0.1}/>
+                  <stop offset="5%" stopColor="hsl(var(--chart-2))" stopOpacity={0.8}/>
+                  <stop offset="95%" stopColor="hsl(var(--chart-2))" stopOpacity={0.1}/>
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
-              <XAxis dataKey="time" stroke="#64748b" />
-              <YAxis stroke="#64748b" />
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted))" />
+              <XAxis dataKey="time" stroke="hsl(var(--muted-foreground))" />
+              <YAxis stroke="hsl(var(--muted-foreground))" />
               <Tooltip 
                 contentStyle={{ 
-                  backgroundColor: 'white', 
-                  border: '1px solid #e2e8f0',
+                  backgroundColor: 'hsl(var(--card))', 
+                  border: '1px solid hsl(var(--border))',
                   borderRadius: '8px',
-                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                  color: 'hsl(var(--card-foreground))'
                 }}
               />
+              {/* Current/Historical Price Area */}
+              <Area
+                type="monotone"
+                dataKey="price"
+                stroke="hsl(var(--primary))"
+                strokeWidth={2}
+                fillOpacity={1}
+                fill="url(#colorPrice)"
+                name="Current Price"
+                connectNulls={false}
+              />
+              {/* LSTM Predictions Area */}
               <Area
                 type="monotone"
                 dataKey="predicted"
-                stroke="#f7971e"
+                stroke="hsl(var(--chart-2))"
                 strokeWidth={2}
-                fillOpacity={1}
+                strokeDasharray="5 5"
+                fillOpacity={0.5}
                 fill="url(#colorPredicted)"
                 name="LSTM Prediction"
               />
             </AreaChart>
           ) : (
-            <LineChart data={data}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
-              <XAxis dataKey="time" stroke="#64748b" />
-              <YAxis stroke="#64748b" />
+            <LineChart data={combinedData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted))" />
+              <XAxis dataKey="time" stroke="hsl(var(--muted-foreground))" />
+              <YAxis stroke="hsl(var(--muted-foreground))" />
               <Tooltip 
                 contentStyle={{ 
-                  backgroundColor: 'white', 
-                  border: '1px solid #e2e8f0',
+                  backgroundColor: 'hsl(var(--card))', 
+                  border: '1px solid hsl(var(--border))',
                   borderRadius: '8px',
-                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                  color: 'hsl(var(--card-foreground))'
                 }}
               />
+              {/* Current/Historical Price Line */}
+              <Line
+                type="monotone"
+                dataKey="price"
+                stroke="hsl(var(--primary))"
+                strokeWidth={3}
+                dot={{ fill: 'hsl(var(--primary))', strokeWidth: 2, r: 4 }}
+                name="Current Price"
+                connectNulls={false}
+              />
+              {/* LSTM Predictions Line */}
               <Line
                 type="monotone"
                 dataKey="predicted"
-                stroke="#f7971e"
+                stroke="hsl(var(--chart-2))"
                 strokeWidth={3}
-                dot={{ fill: '#f7971e', strokeWidth: 2, r: 4 }}
+                strokeDasharray="5 5"
+                dot={{ fill: 'hsl(var(--chart-2))', strokeWidth: 2, r: 4 }}
                 name="LSTM Prediction"
               />
             </LineChart>
