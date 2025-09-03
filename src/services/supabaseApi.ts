@@ -314,7 +314,11 @@ export class SupabaseApiService {
         const predictedPrice = basePrice * (1 + volatility + trendFactor);
         
         predictions.push({
-          time: futureTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+          time: futureTime.toLocaleTimeString('en-IN', { 
+            timeZone: 'Asia/Kolkata',
+            hour: '2-digit', 
+            minute: '2-digit' 
+          }),
           price: Math.round(predictedPrice * 100) / 100,
           confidence: 85 + Math.random() * 10
         });
@@ -328,7 +332,8 @@ export class SupabaseApiService {
         const predictedPrice = basePrice * (1 + volatility + trendFactor);
         
         predictions.push({
-          time: futureTime.toLocaleString('en-US', { 
+          time: futureTime.toLocaleDateString('en-IN', { 
+            timeZone: 'Asia/Kolkata',
             hour: '2-digit', 
             minute: '2-digit',
             day: 'numeric',
@@ -347,14 +352,68 @@ export class SupabaseApiService {
         const predictedPrice = basePrice * (1 + volatility + trendFactor);
         
         predictions.push({
-          time: futureTime.toLocaleString('en-US', { 
+          time: futureTime.toLocaleDateString('en-IN', { 
+            timeZone: 'Asia/Kolkata',
             weekday: 'short',
-            hour: '2-digit',
-            day: 'numeric',
-            month: 'short'
+            month: 'short',
+            day: 'numeric'
           }),
           price: Math.round(predictedPrice * 100) / 100,
           confidence: 70 + Math.random() * 20
+        });
+      }
+    } else if (timeframe === '1M') {
+      // Next 30 days, every 6 hours
+      for (let i = 1; i <= 120; i++) {
+        const futureTime = new Date(now.getTime() + i * 6 * 60 * 60 * 1000);
+        const volatility = (Math.random() - 0.5) * 0.03; // ±3% volatility
+        const trendFactor = Math.sin(i * 0.05) * 0.015; // Monthly trend
+        const predictedPrice = basePrice * (1 + volatility + trendFactor);
+        
+        predictions.push({
+          time: futureTime.toLocaleDateString('en-IN', { 
+            timeZone: 'Asia/Kolkata',
+            month: 'short',
+            day: 'numeric'
+          }),
+          price: Math.round(predictedPrice * 100) / 100,
+          confidence: 65 + Math.random() * 25
+        });
+      }
+    } else if (timeframe === '3M') {
+      // Next 90 days, every 12 hours
+      for (let i = 1; i <= 180; i++) {
+        const futureTime = new Date(now.getTime() + i * 12 * 60 * 60 * 1000);
+        const volatility = (Math.random() - 0.5) * 0.04; // ±4% volatility
+        const trendFactor = Math.sin(i * 0.02) * 0.02; // Quarterly trend
+        const predictedPrice = basePrice * (1 + volatility + trendFactor);
+        
+        predictions.push({
+          time: futureTime.toLocaleDateString('en-IN', { 
+            timeZone: 'Asia/Kolkata',
+            month: 'short',
+            day: 'numeric'
+          }),
+          price: Math.round(predictedPrice * 100) / 100,
+          confidence: 60 + Math.random() * 30
+        });
+      }
+    } else if (timeframe === '1Y') {
+      // Next 12 months, every week
+      for (let i = 1; i <= 52; i++) {
+        const futureTime = new Date(now.getTime() + i * 7 * 24 * 60 * 60 * 1000);
+        const volatility = (Math.random() - 0.5) * 0.05; // ±5% volatility
+        const trendFactor = Math.sin(i * 0.12) * 0.03; // Yearly trend
+        const predictedPrice = basePrice * (1 + volatility + trendFactor);
+        
+        predictions.push({
+          time: futureTime.toLocaleDateString('en-IN', { 
+            timeZone: 'Asia/Kolkata',
+            month: 'short',
+            year: '2-digit'
+          }),
+          price: Math.round(predictedPrice * 100) / 100,
+          confidence: 50 + Math.random() * 35
         });
       }
     }
