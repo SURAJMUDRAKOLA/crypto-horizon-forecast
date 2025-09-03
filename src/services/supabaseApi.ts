@@ -314,16 +314,18 @@ export class SupabaseApiService {
         const predictedPrice = basePrice * (1 + volatility + trendFactor);
         
         predictions.push({
-          time: futureTime.toLocaleTimeString('en-IN', { 
+          time: futureTime.toLocaleString('en-IN', { 
             timeZone: 'Asia/Kolkata',
             hour: '2-digit', 
-            minute: '2-digit' 
+            minute: '2-digit',
+            month: 'short',
+            day: 'numeric'
           }),
           price: Math.round(predictedPrice * 100) / 100,
           confidence: 85 + Math.random() * 10
         });
       }
-    } else if (timeframe === '24H') {
+    } else if (timeframe === '1D') {
       // Next 24 hours, every hour
       for (let i = 1; i <= 24; i++) {
         const futureTime = new Date(now.getTime() + i * 60 * 60 * 1000);
@@ -332,7 +334,7 @@ export class SupabaseApiService {
         const predictedPrice = basePrice * (1 + volatility + trendFactor);
         
         predictions.push({
-          time: futureTime.toLocaleDateString('en-IN', { 
+          time: futureTime.toLocaleString('en-IN', { 
             timeZone: 'Asia/Kolkata',
             hour: '2-digit', 
             minute: '2-digit',
@@ -356,7 +358,8 @@ export class SupabaseApiService {
             timeZone: 'Asia/Kolkata',
             weekday: 'short',
             month: 'short',
-            day: 'numeric'
+            day: 'numeric',
+            hour: '2-digit'
           }),
           price: Math.round(predictedPrice * 100) / 100,
           confidence: 70 + Math.random() * 20
@@ -374,7 +377,8 @@ export class SupabaseApiService {
           time: futureTime.toLocaleDateString('en-IN', { 
             timeZone: 'Asia/Kolkata',
             month: 'short',
-            day: 'numeric'
+            day: 'numeric',
+            year: 'numeric'
           }),
           price: Math.round(predictedPrice * 100) / 100,
           confidence: 65 + Math.random() * 25
@@ -392,7 +396,8 @@ export class SupabaseApiService {
           time: futureTime.toLocaleDateString('en-IN', { 
             timeZone: 'Asia/Kolkata',
             month: 'short',
-            day: 'numeric'
+            day: 'numeric',
+            year: 'numeric'
           }),
           price: Math.round(predictedPrice * 100) / 100,
           confidence: 60 + Math.random() * 30
@@ -410,7 +415,7 @@ export class SupabaseApiService {
           time: futureTime.toLocaleDateString('en-IN', { 
             timeZone: 'Asia/Kolkata',
             month: 'short',
-            year: '2-digit'
+            year: 'numeric'
           }),
           price: Math.round(predictedPrice * 100) / 100,
           confidence: 50 + Math.random() * 35
