@@ -37,18 +37,19 @@ const CoinDetails = () => {
 
   // Generate proper candlestick data based on timeframe and chartData
   const candlestickData = chartData.map((item, index) => {
-    const basePrice = item.predicted || 40000;
-    const volatility = 0.02; // 2% volatility
+    // Use actual price if available, otherwise use predicted price
+    const basePrice = item.price || item.predicted || 40000;
+    const volatility = 0.015; // 1.5% volatility for more realistic data
     
     return {
       time: item.time,
-      open: basePrice * (0.99 + Math.random() * 0.02), // Open within ±1%
-      high: basePrice * (1.005 + Math.random() * 0.015), // High 0.5-2% above
-      low: basePrice * (0.985 + Math.random() * 0.01), // Low 1.5-0.5% below
-      close: basePrice, // Close at predicted price
-      volume: Math.floor(Math.random() * 2000000) + 1000000, // Volume 1M-3M
+      open: basePrice * (0.995 + Math.random() * 0.01), // Open within ±0.5%
+      high: basePrice * (1.002 + Math.random() * 0.008), // High 0.2-1% above
+      low: basePrice * (0.992 + Math.random() * 0.006), // Low 0.8-0.2% below
+      close: basePrice, // Close at actual/predicted price
+      volume: Math.floor(Math.random() * 1500000) + 800000, // Volume 0.8M-2.3M
       predicted: item.predicted,
-      confidence: 80 + Math.random() * 15 // 80-95% confidence
+      confidence: item.confidence || (80 + Math.random() * 15) // 80-95% confidence
     };
   });
 

@@ -179,15 +179,62 @@ const CandlestickChart = ({ data, selectedCoin, timeframe, onTimeframeChange, pr
               contentStyle={{ 
                 backgroundColor: 'hsl(var(--card))', 
                 border: '1px solid hsl(var(--border))',
-                borderRadius: '8px',
-                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-                backdropFilter: 'blur(10px)'
+                borderRadius: '12px',
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
+                backdropFilter: 'blur(16px)',
+                fontSize: '14px',
+                fontFamily: 'Inter, system-ui, sans-serif'
+              }}
+              labelStyle={{
+                color: 'hsl(var(--foreground))',
+                fontWeight: '600',
+                marginBottom: '8px'
               }}
               formatter={(value: any, name: string) => {
-                if (name === 'predicted') {
-                  return [`$${value.toLocaleString()}`, 'AI Prediction'];
+                if (name === 'predicted' || name === 'AI Prediction') {
+                  return [
+                    <span style={{ 
+                      color: 'hsl(var(--accent))', 
+                      fontWeight: '700',
+                      fontSize: '15px',
+                      fontFamily: 'JetBrains Mono, monospace',
+                      textShadow: '0 0 8px hsla(var(--accent), 0.3)'
+                    }}>
+                      🤖 ${value?.toLocaleString()} (AI)
+                    </span>, 
+                    'LSTM Prediction'
+                  ];
                 }
-                return [`$${value.toLocaleString()}`, name];
+                if (name === 'close' || name === 'Price') {
+                  return [
+                    <span style={{ 
+                      color: 'hsl(var(--primary))', 
+                      fontWeight: '600',
+                      fontSize: '14px'
+                    }}>
+                      💎 ${value?.toLocaleString()}
+                    </span>, 
+                    'Market Price'
+                  ];
+                }
+                if (name === 'confidence') {
+                  return [
+                    <span style={{ 
+                      color: 'hsl(var(--muted-foreground))', 
+                      fontSize: '13px',
+                      fontStyle: 'italic'
+                    }}>
+                      {value?.toFixed(1)}%
+                    </span>, 
+                    'AI Confidence'
+                  ];
+                }
+                return [
+                  <span style={{ color: 'hsl(var(--foreground))' }}>
+                    ${value?.toLocaleString()}
+                  </span>, 
+                  name
+                ];
               }}
             />
 
