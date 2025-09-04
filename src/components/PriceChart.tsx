@@ -26,53 +26,112 @@ const PriceChart = ({ data, selectedCoin, timeframe, onTimeframeChange }: PriceC
 
   // Fetch real-time market data and future predictions
   useEffect(() => {
+    console.log(`PriceChart: Timeframe changed to ${timeframe} for ${selectedCoin}`);
+    
     const fetchRealTimeData = async () => {
       try {
         // Get current market data
         const marketData = await SupabaseApiService.getMarketData([selectedCoin]);
         const currentPrice = marketData[0]?.current_price || 0;
         
-        // Generate future predictions based on timeframe
+        // Generate future predictions based on timeframe with proper logging
+        console.log(`Generating predictions for ${selectedCoin} with timeframe ${timeframe}`);
         const futurePredictions = await SupabaseApiService.generateFuturePredictions(selectedCoin, timeframe);
+        console.log(`Received ${futurePredictions.length} predictions for ${timeframe}`);
         
-        // Combine historical data with current price point (if not already present)
-        const now = new Date();
-        const lastHistoricalTime = data[data.length - 1]?.time;
-        const currentDataPoint = {
-          time: now.toLocaleTimeString('en-IN', { 
-            timeZone: 'Asia/Kolkata',
-            hour: '2-digit', 
-            minute: '2-digit',
-            ...(timeframe !== '1H' && { day: 'numeric', month: 'short' })
-          }),
-          price: currentPrice,
-          predicted: undefined // Current point has actual price, not prediction
-        };
+        // Use fresh data from parent, don't mix with old data
+        const baseData = [...data];
+        
+        // Add current price point if data exists
+        if (baseData.length > 0 && currentPrice > 0) {
+          const now = new Date();
+          let currentTimeLabel: string;
+          
+          // Format time based on timeframe to match the data pattern
+          switch (timeframe) {
+            case '1H':
+              currentTimeLabel = now.toLocaleTimeString('en-IN', { 
+                timeZone: 'Asia/Kolkata',
+                hour: '2-digit', 
+                minute: '2-digit'
+              });
+              break;
+            case '1D':
+              currentTimeLabel = now.toLocaleTimeString('en-IN', { 
+                timeZone: 'Asia/Kolkata',
+                hour: '2-digit', 
+                minute: '2-digit'
+              });
+              break;
+            case '7D':
+              currentTimeLabel = now.toLocaleDateString('en-IN', { 
+                timeZone: 'Asia/Kolkata',
+                weekday: 'short', 
+                month: 'short', 
+                day: 'numeric'
+              });
+              break;
+            case '1M':
+            case '3M':
+              currentTimeLabel = now.toLocaleDateString('en-IN', { 
+                timeZone: 'Asia/Kolkata',
+                month: 'short', 
+                day: 'numeric'
+              });
+              break;
+            case '1Y':
+              currentTimeLabel = now.toLocaleDateString('en-IN', { 
+                timeZone: 'Asia/Kolkata',
+                month: 'short', 
+                year: '2-digit'
+              });
+              break;
+            default:
+              currentTimeLabel = now.toLocaleDateString('en-IN', { 
+                timeZone: 'Asia/Kolkata',
+                month: 'short', 
+                day: 'numeric'
+              });
+          }
 
-        // Only add current point if it's different from last historical point
-        const historicalWithCurrent = lastHistoricalTime !== currentDataPoint.time 
-          ? [...data, currentDataPoint] 
-          : data;
+          const currentDataPoint = {
+            time: currentTimeLabel,
+            price: currentPrice,
+            predicted: undefined
+          };
 
-        // Prepare future prediction data (only prediction values, no actual prices)
-        const futureData = futurePredictions.slice(0, 20).map(pred => ({
+          // Only add if different from last point
+          const lastPoint = baseData[baseData.length - 1];
+          if (!lastPoint || lastPoint.time !== currentTimeLabel) {
+            baseData.push(currentDataPoint);
+          }
+        }
+
+        // Prepare future prediction data
+        const futureData = futurePredictions.slice(0, 15).map(pred => ({
           time: pred.time,
           price: undefined, // No actual price for future
           predicted: pred.price,
           confidence: pred.confidence
         }));
 
-        // Combine all data: historical + current + future
-        const combined = [...historicalWithCurrent, ...futureData];
+        // Combine all data: base + future predictions
+        const combined = [...baseData, ...futureData];
         setCombinedData(combined);
         setRealTimeData(futureData);
         
       } catch (error) {
         console.error('Error fetching real-time data:', error);
+        // Fallback to just the parent data
         setCombinedData(data);
+        setRealTimeData([]);
       }
     };
 
+    // Clear existing data first, then fetch new data
+    setCombinedData(data);
+    setRealTimeData([]);
+    
     fetchRealTimeData();
     
     // Set up real-time updates every 30 seconds
