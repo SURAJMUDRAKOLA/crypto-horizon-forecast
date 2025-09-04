@@ -107,8 +107,30 @@ const PriceChart = ({ data, selectedCoin, timeframe, onTimeframeChange }: PriceC
           }
         }
 
-        // Prepare future prediction data
-        const futureData = futurePredictions.slice(0, 15).map(pred => ({
+        // Prepare future prediction data - use all predictions for longer timeframes
+        let maxPredictions = 20; // Default for short timeframes
+        switch (timeframe) {
+          case '1H':
+            maxPredictions = 40; // Show more granular data
+            break;
+          case '1D':
+            maxPredictions = 24; // 24 hours
+            break;
+          case '7D':
+            maxPredictions = 35; // 7 days with multiple points per day
+            break;
+          case '1M':
+            maxPredictions = 60; // 30 days with 2 points per day
+            break;
+          case '3M':
+            maxPredictions = 90; // 90 days with 1 point per day
+            break;
+          case '1Y':
+            maxPredictions = 52; // 52 weeks
+            break;
+        }
+        
+        const futureData = futurePredictions.slice(0, maxPredictions).map(pred => ({
           time: pred.time,
           price: undefined, // No actual price for future
           predicted: pred.price,
