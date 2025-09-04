@@ -35,8 +35,9 @@ const PriceChart = ({ data, selectedCoin, timeframe, onTimeframeChange }: PriceC
         // Generate future predictions based on timeframe
         const futurePredictions = await SupabaseApiService.generateFuturePredictions(selectedCoin, timeframe);
         
-        // Combine historical data with current price point
+        // Combine historical data with current price point (if not already present)
         const now = new Date();
+        const lastHistoricalTime = data[data.length - 1]?.time;
         const currentDataPoint = {
           time: now.toLocaleTimeString('en-IN', { 
             timeZone: 'Asia/Kolkata',
@@ -45,11 +46,16 @@ const PriceChart = ({ data, selectedCoin, timeframe, onTimeframeChange }: PriceC
             ...(timeframe !== '1H' && { day: 'numeric', month: 'short' })
           }),
           price: currentPrice,
-          predicted: currentPrice
+          predicted: undefined // Current point has actual price, not prediction
         };
 
-        // Prepare future prediction data
-        const futureData = futurePredictions.map(pred => ({
+        // Only add current point if it's different from last historical point
+        const historicalWithCurrent = lastHistoricalTime !== currentDataPoint.time 
+          ? [...data, currentDataPoint] 
+          : data;
+
+        // Prepare future prediction data (only prediction values, no actual prices)
+        const futureData = futurePredictions.slice(0, 20).map(pred => ({
           time: pred.time,
           price: undefined, // No actual price for future
           predicted: pred.price,
@@ -57,7 +63,7 @@ const PriceChart = ({ data, selectedCoin, timeframe, onTimeframeChange }: PriceC
         }));
 
         // Combine all data: historical + current + future
-        const combined = [...data, currentDataPoint, ...futureData];
+        const combined = [...historicalWithCurrent, ...futureData];
         setCombinedData(combined);
         setRealTimeData(futureData);
         

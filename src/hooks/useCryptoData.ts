@@ -112,8 +112,8 @@ export const useCryptoData = (selectedCoin: string, timeframe: string = '7D') =>
       return {
         time: timeLabel,
         price: item.close_price,
-        predicted: item.close_price, // Real price, not predicted
-        confidence: 85 + Math.random() * 10 // Add realistic confidence
+        predicted: undefined, // No predictions for historical data
+        confidence: undefined
       };
     });
   };
@@ -204,8 +204,8 @@ export const useCryptoData = (selectedCoin: string, timeframe: string = '7D') =>
       data.push({
         time: timeLabel,
         price: price,
-        predicted: price,
-        confidence: 80 + Math.random() * 15 // Random confidence between 80-95%
+        predicted: undefined, // No predictions for synthetic historical data
+        confidence: undefined
       });
     }
 

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
@@ -11,6 +11,7 @@ import ModernPriceCard from "@/components/ModernPriceCard";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCryptoData } from "@/hooks/useCryptoData";
+import { SupabaseApiService } from "@/services/supabaseApi";
 import { Loader2 } from "lucide-react";
 
 const CoinDetails = () => {
@@ -35,23 +36,59 @@ const CoinDetails = () => {
     }
   };
 
-  // Generate proper candlestick data based on timeframe and chartData
-  const candlestickData = chartData.map((item, index) => {
-    // Use actual price if available, otherwise use predicted price
-    const basePrice = item.price || item.predicted || 40000;
-    const volatility = 0.015; // 1.5% volatility for more realistic data
-    
-    return {
-      time: item.time,
-      open: basePrice * (0.995 + Math.random() * 0.01), // Open within ±0.5%
-      high: basePrice * (1.002 + Math.random() * 0.008), // High 0.2-1% above
-      low: basePrice * (0.992 + Math.random() * 0.006), // Low 0.8-0.2% below
-      close: basePrice, // Close at actual/predicted price
-      volume: Math.floor(Math.random() * 1500000) + 800000, // Volume 0.8M-2.3M
-      predicted: item.predicted,
-      confidence: item.confidence || (80 + Math.random() * 15) // 80-95% confidence
+  // Generate proper candlestick data with future AI predictions
+  const [candlestickData, setCandlestickData] = useState<any[]>([]);
+
+  useEffect(() => {
+    const generateCandlestickData = async () => {
+      // Historical data based on chartData
+      const historicalData = chartData.map((item, index) => {
+        const basePrice = item.price || 40000;
+        const volatility = 0.015; // 1.5% volatility for more realistic data
+        
+        return {
+          time: item.time,
+          open: basePrice * (0.995 + Math.random() * 0.01), // Open within ±0.5%
+          high: basePrice * (1.002 + Math.random() * 0.008), // High 0.2-1% above
+          low: basePrice * (0.992 + Math.random() * 0.006), // Low 0.8-0.2% below
+          close: basePrice, // Close at actual price
+          volume: Math.floor(Math.random() * 1500000) + 800000,
+          predicted: undefined, // No predictions for historical data
+          confidence: undefined,
+          isFuture: false
+        };
+      });
+
+      try {
+        // Get future AI predictions
+        const futurePredictions = await SupabaseApiService.generateFuturePredictions(symbol || 'BTC', timeframe);
+        
+        // Create future data points with only prediction values
+        const futureData = futurePredictions.slice(0, 15).map((pred) => { // Limit future predictions
+          return {
+            time: pred.time,
+            open: undefined,
+            high: undefined,  
+            low: undefined,
+            close: undefined, // No actual price for future
+            volume: 0,
+            predicted: Math.round(pred.price * 100) / 100,
+            confidence: Math.round(pred.confidence * 10) / 10,
+            isFuture: true
+          };
+        });
+
+        setCandlestickData([...historicalData, ...futureData]);
+      } catch (error) {
+        console.error('Error generating future predictions:', error);
+        setCandlestickData(historicalData);
+      }
     };
-  });
+
+    if (chartData.length > 0) {
+      generateCandlestickData();
+    }
+  }, [chartData, symbol, timeframe]);
 
   const currentCoin = cryptoData.find(coin => coin.symbol === symbol) || cryptoData[0];
 

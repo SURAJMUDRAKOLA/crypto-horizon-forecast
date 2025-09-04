@@ -15,6 +15,7 @@ interface CandlestickData {
   volume: number;
   predicted?: number;
   confidence?: number;
+  isFuture?: boolean;
 }
 
 interface CandlestickChartProps {
@@ -271,15 +272,21 @@ const CandlestickChart = ({ data, selectedCoin, timeframe, onTimeframeChange, pr
             {/* AI Predictions Overlay */}
             {showPredictions && (
               <>
-                <Line
-                  type="monotone"
-                  dataKey="predicted"
-                  stroke="hsl(var(--accent))"
-                  strokeWidth={3}
-                  strokeDasharray="5 5"
-                  dot={{ fill: 'hsl(var(--accent))', strokeWidth: 2, r: 4 }}
-                  name="AI Prediction"
-                />
+            <Line
+              type="monotone"
+              dataKey="predicted"
+              stroke="hsl(var(--accent))"
+              strokeWidth={3}
+              strokeDasharray="8 4"
+              dot={{ 
+                fill: 'hsl(var(--accent))', 
+                strokeWidth: 2, 
+                r: 5,
+                filter: 'drop-shadow(0 0 6px hsla(var(--accent), 0.5))'
+              }}
+              name="AI Prediction"
+              connectNulls={true}
+            />
                 <Area
                   type="monotone"
                   dataKey="predicted"
